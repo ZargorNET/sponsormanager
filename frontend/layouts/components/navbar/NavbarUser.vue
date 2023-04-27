@@ -14,30 +14,31 @@
 </template>
 
 <script setup lang="ts">
-const loggedInDropdownOptions = [
-  {
-    label: "Season: ----",
-    key: "season",
-    props: {
-      onClick: () => {
-        router.push("/seasonselect");
-      }
-    }
-  },
-  {
-    label: 'Logout',
-    key: 'logout',
-    props: {
-      class: "bg-red-500",
-      onClick: logout
-    }
-  }
-];
-
 const router = useRouter();
 const authStore = useAuthStore();
 const username = computed(() => authStore.user?.name ?? "");
 const loadingBar = useLoadingBar();
+
+
+const loggedInDropdownOptions = ref([
+    {
+        label: `Season: ${authStore.user?.season ?? '----'}`,
+        key: "season",
+        props: {
+            onClick: () => {
+                router.push("/seasonselect");
+            }
+        }
+    },
+    {
+        label: 'Logout',
+        key: 'logout',
+        props: {
+            class: "bg-red-500",
+            onClick: logout
+        }
+    }
+]);
 
 async function logout() {
   loadingBar.start();

@@ -2,7 +2,12 @@ import {jsonRequestOptions} from "~/utils/http";
 import {Ref} from "vue";
 
 export const useAuthStore = defineStore('user', () => {
-    const user: Ref<Auth | null> = ref(null);
+    const user: Ref<Auth | null> = ref({
+        uid: "ab",
+        name: "Conner Zargor",
+        season: "2023",
+        sessionToken: "uhh"
+    });
 
 
     const sessionCookie = useCookie("session");

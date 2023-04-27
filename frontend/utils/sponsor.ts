@@ -6,7 +6,7 @@ export interface Sponsor {
     fields: SponsorField[],
     tags: string[],
     favoursCompleted: boolean,
-    favours?: SponsorFavour[]
+    favours: SponsorFavour[]
 }
 
 export interface SponsorField {
