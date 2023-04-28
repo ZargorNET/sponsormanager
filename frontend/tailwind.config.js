@@ -10,6 +10,9 @@ module.exports = {
         extend: {
             fontFamily: {
                 gloock: ["Gloock"]
+            },
+            boxShadow: {
+                innerRing: "inset 0px 1px 2px #a2a2da"
             }
         }
     }

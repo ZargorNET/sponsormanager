@@ -1,13 +1,13 @@
 <template>
-  <div>
+    <div>
 
-  </div>
+    </div>
 </template>
 
 <script setup lang="ts">
 import {Sponsor} from "~/utils/sponsor";
 
 const props = defineProps<{
-  sponsors: Sponsor[]
+    sponsors: Sponsor[]
 }>();
 </script>

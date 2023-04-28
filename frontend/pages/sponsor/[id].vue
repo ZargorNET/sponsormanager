@@ -2,12 +2,14 @@
     <div>
         <div>
             <n-card>
-                <div class="absolute top-8 right-8">
+                <div class="absolute top-8 right-8 z-10">
                     <n-tooltip>
                         <template #trigger>
-                            <Icon :name="!edit ? 'material-symbols:edit' : 'material-symbols:save'" class="text-2xl cursor-pointer" @click="editBtn()"/>
+                            <div class="text-3xl cursor-pointer rounded" @click="editBtn()">
+                                <Icon :name="!edit ? 'material-symbols:edit' : 'material-symbols:save'"/>
+                            </div>
                         </template>
-                        Edit
+                        {{ edit ? "Save" : "Edit" }}
                     </n-tooltip>
                 </div>
                 <div class="flex">
@@ -20,27 +22,49 @@
                         </p>
 
                         <div class="flex mt-2">
-                            <SponsorTags :tags="sponsor.tags" />
+                            <SponsorTags :tags="sponsor.tags" :edit="edit"/>
                         </div>
 
                         <div :class="sponsor.favoursCompleted ? 'bg-green-400' : 'bg-red-400'"
-                             class="w-full py-2 my-2 text-lg text-center text-bold">
+                             class="w-full py-2 my-2 text-lg text-center text-bold rounded shadow-innerRing">
                             <template v-if="sponsor.favoursCompleted">
                                 All favours completed
                             </template>
                             <template v-else>
-                                {{ sponsor.favours.filter(f => !f.completed).length }} favours open!
+                                Some favours open!
                             </template>
+                        </div>
+                        <div>
+                            Favours <span class="float-right">{{ sponsor.favours.filter(f => f.completed).length }}/{{
+                                sponsor.favours.length
+                            }}</span>
                         </div>
                     </div>
                     <div class="h-full w-full p-2 flex child:flex-1">
                         <div>
                             Fields:
                             <n-collapse>
-                                <n-collapse-item v-for="field in fields" :title="field.name">
-                                    {{ field.value }}
+                                <n-collapse-item title="Description">
+                                    <EditableInputField :edit="edit" v-model="sponsor.shortDescription" multi-line/>
+                                </n-collapse-item>
+                                <n-collapse-item v-for="(field, index) in sponsor.fields" :title="field.name">
+                                    <EditableInputField :edit="edit" v-model="sponsor.fields[index].value" multi-line/>
+
+                                    <template #header-extra>
+                                        <n-tooltip>
+                                            <template #trigger>
+                                                <div class="text-2xl" @click="sponsor.fields.splice(index, 1)">
+                                                    <Icon name="material-symbols:delete"/>
+                                                </div>
+                                            </template>
+                                            Delete
+                                        </n-tooltip>
+                                    </template>
                                 </n-collapse-item>
                             </n-collapse>
+                            <div class="flex justify-center mt-4">
+                                <n-button type="success" v-if="edit" @click="addField()">Add</n-button>
+                            </div>
                         </div>
                         <div>
                             Favours:
@@ -55,44 +79,48 @@
             </n-card>
         </div>
         {{ route.params.id }}
+        <br/>
         {{ sponsor }}
     </div>
 </template>
 
 <script lang="ts" setup>
-import {Sponsor, SponsorFavour, SponsorField} from "~/utils/sponsor";
+import {Sponsor, SponsorFavour} from "~/utils/sponsor";
 import SponsorImage from "~/components/SponsorImage.vue";
-import {ComputedRef} from "vue";
+import {ComputedRef, Ref} from "vue";
 
 const route = useRoute();
-const fields: ComputedRef<SponsorField[]> = computed(() => [{
-    name: "Description",
-    value: sponsor.shortDescription
-}].concat(sponsor.fields));
 const favours: ComputedRef<SponsorFavour[]> = computed(() => {
-   return [...sponsor.favours].sort((a,b) => (a.completed ? 1 : 0) - (b.completed ? 1 : 0));
+    return [...sponsor.value.favours].sort((a, b) => (a.completed ? 1 : 0) - (b.completed ? 1 : 0));
 });
-const edit = ref(false);
+const edit: Ref<boolean> = ref(false);
 
 function editBtn() {
-    if(!edit.value) {
+    if (!edit.value) {
         edit.value = true;
 
         window.addEventListener("beforeunload", areYouSureToExit);
         return;
     }
+
+    window.removeEventListener("beforeunload", areYouSureToExit);
+    edit.value = false;
 }
 
 onBeforeUnmount(() => {
     window.removeEventListener("beforeunload", areYouSureToExit);
 });
 
+function addField() {
+    alert("add modal here");
+}
+
 function areYouSureToExit(e: BeforeUnloadEvent) {
     e.preventDefault();
     e.returnValue = "";
 }
 
-const sponsor: Sponsor = {
+const sponsor: Ref<Sponsor> = ref({
     uid: "dw",
     name: "Sponsor1",
     shortDescription: "xD",
@@ -116,6 +144,6 @@ const sponsor: Sponsor = {
         dueUntil: new Date(),
         comment: "Maaybe?"
     }]
-};
+});
 
 </script>

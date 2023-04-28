@@ -1,9 +1,9 @@
 <template>
-  <div class="w-full h-full">
-    <SponsorOverview/>
+    <div class="w-full h-full">
+        <SponsorOverview/>
 
-    <NuxtLink to="/login">Login</NuxtLink>
-  </div>
+        <NuxtLink to="/login">Login</NuxtLink>
+    </div>
 </template>
 
 <script setup lang="ts">
