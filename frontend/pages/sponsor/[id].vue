@@ -50,7 +50,7 @@
                                 <n-collapse-item v-for="(field, index) in sponsor.fields" :title="field.name">
                                     <EditableInputField :edit="edit" v-model="sponsor.fields[index].value" multi-line/>
 
-                                    <template #header-extra>
+                                    <template #header-extra v-if="edit">
                                         <n-tooltip>
                                             <template #trigger>
                                                 <div class="text-2xl" @click="sponsor.fields.splice(index, 1)">
@@ -88,8 +88,10 @@
 import {Sponsor, SponsorFavour} from "~/utils/sponsor";
 import SponsorImage from "~/components/SponsorImage.vue";
 import {ComputedRef, Ref} from "vue";
+import {NButton, NInput} from "naive-ui";
 
 const route = useRoute();
+const dialog = useDialog();
 const favours: ComputedRef<SponsorFavour[]> = computed(() => {
     return [...sponsor.value.favours].sort((a, b) => (a.completed ? 1 : 0) - (b.completed ? 1 : 0));
 });
@@ -111,8 +113,28 @@ onBeforeUnmount(() => {
     window.removeEventListener("beforeunload", areYouSureToExit);
 });
 
+const addFieldValue = ref();
+
 function addField() {
-    alert("add modal here");
+    dialog.create({
+        content: () => h(
+            'div',
+            [
+                h("span", "Field Name"),
+                h(NInput, {
+                    "placeholder": "Field Name",
+                    "v-model:value": addFieldValue.value,
+                    "onUpdate:value": (val) => addFieldValue.value = val
+                })
+            ]
+        ),
+        title: "Add a Field",
+        positiveText: "Ok",
+        onPositiveClick: () => new Promise<void>((res) => {
+            sponsor.value.fields.push({name: addFieldValue.value, value: ""})
+            res();
+        })
+    })
 }
 
 function areYouSureToExit(e: BeforeUnloadEvent) {
@@ -138,10 +160,10 @@ const sponsor: Ref<Sponsor> = ref({
     favoursCompleted: true,
     favours: [{
         uid: "a",
-        sponsorUid: "dw",
+        sponsor_uid: "dw",
         condition: "Insta Posttt",
         completed: false,
-        dueUntil: new Date(),
+        due_until: new Date(),
         comment: "Maaybe?"
     }]
 });

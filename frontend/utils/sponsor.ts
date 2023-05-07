@@ -1,5 +1,5 @@
 export interface Sponsor {
-    uid: string,
+    uid?: string,
     name: string,
     imageUrl?: string,
     shortDescription: string,
@@ -15,10 +15,10 @@ export interface SponsorField {
 }
 
 export interface SponsorFavour {
-    uid: string,
+    uid?: string,
     sponsorUid: string,
     condition: string,
     completed: boolean,
     comment: string,
-    dueUntil: Date | undefined,
+    dueUntil?: Date,
 }

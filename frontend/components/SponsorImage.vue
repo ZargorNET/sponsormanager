@@ -1,6 +1,6 @@
 <template>
     <div class="h-full w-full flex items-center justify-center bg-blue-500 rounded">
-        <img v-if="sponsor.imageUrl" :alt="`image of ${sponsor.name}`" :src="sponsor.imageUrl"/>
+        <img v-if="sponsor.image_url" :alt="`image of ${sponsor.name}`" :src="sponsor.image_url"/>
         <div v-else>
             <n-empty description="No logo" size="huge"/>
         </div>

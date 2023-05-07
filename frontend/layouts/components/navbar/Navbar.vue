@@ -9,8 +9,7 @@
                 </div>
             </NuxtLink>
             <div class="hidden lg:block">
-                <!--<NavbarSearch/>-->
-
+                <NavbarSearch/>
             </div>
             <div class="flex flex-col lg:flex-row">
                 <button class="lg:hidden ml-auto" @click="mobileShowMenu = !mobileShowMenu">
@@ -20,7 +19,7 @@
                     <NavbarAdd class="mr-4"/>
                     <NavbarFavours class="mr-4"/>
                     <NavbarSettings class="mr-4"/>
-                    <NavbarHistory class="mr-4"/>
+                    <!--                    <NavbarHistory class="mr-4"/>-->
                     <NavbarUser/>
                 </div>
             </div>
@@ -29,20 +28,20 @@
             <NavbarAdd/>
             <NavbarFavours/>
             <NavbarSettings/>
-            <NavbarHistory/>
+            <!--            <NavbarHistory/>-->
             <NavbarUser/>
-            <!--<NavbarSearch/>-->
+            <NavbarSearch/>
         </div>
     </div>
 </template>
 
 <script setup>
 
-import NavbarHistory from "~/layouts/components/navbar/NavbarHistory.vue";
 import NavbarAdd from "~/layouts/components/navbar/NavbarAdd.vue";
 import NavbarSettings from "~/layouts/components/navbar/NavbarSettings.vue";
 import NavbarUser from "~/layouts/components/navbar/NavbarUser.vue";
 import NavbarFavours from "~/layouts/components/navbar/NavbarFavours.vue";
+import NavbarSearch from "~/layouts/components/navbar/NavbarSearch.vue";
 
 const mobileShowMenu = ref(false);
 </script>

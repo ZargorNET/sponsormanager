@@ -1,0 +1,62 @@
+use chrono::Utc;
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+use crate::models::mongo::{Sponsor, SponsorFavour, SponsorField};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MeiliSponsor {
+    pub id: Uuid,
+    pub name: String,
+    pub short_description: String,
+    pub tags: Vec<String>,
+    pub fields: Vec<MeiliSponsorField>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MeiliSponsorField {
+    pub name: String,
+    pub value: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MeiliSponsorFavour {
+    pub id: Uuid,
+    pub sponsor_uid: Uuid,
+    pub condition: String,
+    pub completed: bool,
+    pub due_until: chrono::DateTime<Utc>,
+}
+
+impl From<Sponsor> for MeiliSponsor {
+    fn from(value: Sponsor) -> Self {
+        MeiliSponsor {
+            id: value.uid,
+            name: value.name,
+            short_description: value.short_description,
+            tags: value.tags,
+            fields: value.fields.into_iter().map(|x| x.into()).collect(),
+        }
+    }
+}
+
+impl From<SponsorField> for MeiliSponsorField {
+    fn from(value: SponsorField) -> Self {
+        MeiliSponsorField {
+            name: value.name,
+            value: value.value,
+        }
+    }
+}
+
+impl From<SponsorFavour> for MeiliSponsorFavour {
+    fn from(value: SponsorFavour) -> Self {
+        Self {
+            id: value.uid,
+            condition: value.condition,
+            sponsor_uid: value.sponsor_uid,
+            completed: value.completed,
+            due_until: value.due_until,
+        }
+    }
+}
