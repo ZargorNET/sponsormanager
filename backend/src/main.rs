@@ -17,6 +17,7 @@ pub mod error;
 pub mod models;
 pub mod queries;
 mod routes;
+mod meili_sync;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -29,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Initializing state...");
     let state = Arc::new(AppStateStruct {
-        meili: MeiliQueries::new("http://127.0.0.1:7700", "iO34H9ZObAWVobl8Q7krgbvNd-T2gweco-5sQlYW8h8")?,
+        meili: MeiliQueries::new("http://127.0.0.1:7700", "iO34H9ZObAWVobl8Q7krgbvNd-T2gweco-5sQlYW8h8").await?,
         mongo: MongoQueries::new("mongodb://root:verysafepassword@127.0.0.1:27017").await?,
     });
 
@@ -37,8 +38,14 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/", get(|| async { "Hello World. " }))
         .route("/health", get(routes::get_health))
-        .route("/create", post(routes::create_sponsor));
+        .route("/create", post(routes::create_sponsor))
+        .route("/search", get(routes::search))
+        .route("/delete", post(routes::delete))
+        .route("/whoami", get(routes::whoami));
 
+
+    info!("Starting meili sync...");
+    meili_sync::sync_meili(state.clone());
 
     info!("Starting webserver...");
     axum::Server::bind(&"0.0.0.0:8080".parse()?)

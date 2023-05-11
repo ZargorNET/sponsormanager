@@ -60,3 +60,12 @@ impl From<SponsorFavour> for MeiliSponsorFavour {
         }
     }
 }
+
+impl MeiliSponsorFavour {
+    pub fn from_sponsor_vec(vec: &[SponsorFavour]) -> Vec<MeiliSponsorFavour> {
+        vec
+            .iter()
+            .map(|favour| MeiliSponsorFavour::from(favour.clone()))
+            .collect()
+    }
+}

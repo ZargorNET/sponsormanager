@@ -1,8 +1,10 @@
 use std::time::Duration;
 
+use futures::StreamExt;
 use mongodb::bson::doc;
 use mongodb::Collection;
 use mongodb::options::ClientOptions;
+use uuid::Uuid;
 
 use crate::models::mongo::Sponsor;
 
@@ -35,5 +37,23 @@ impl MongoQueries {
     pub async fn insert(&self, sponsor: &Sponsor) -> anyhow::Result<()> {
         self.sponsor_collection.insert_one(sponsor, None).await?;
         Ok(())
+    }
+
+    pub async fn get(&self, uid: Uuid) -> anyhow::Result<Option<Sponsor>> {
+        Ok(self.sponsor_collection.find_one(Some(doc! {"_id": uid}), None).await?)
+    }
+
+    pub async fn delete(&self, uid: &Uuid) -> anyhow::Result<()> {
+        self.sponsor_collection.delete_one(doc! {"_id": uid}, None).await?;
+        Ok(())
+    }
+
+    pub async fn get_all(&self) -> anyhow::Result<Vec<Sponsor>> {
+        let mut cursor = self.sponsor_collection.find(None, None).await?;
+        let mut sponsors = Vec::new();
+        while let Some(sponsor) = cursor.next().await {
+            sponsors.push(sponsor?);
+        }
+        Ok(sponsors)
     }
 }

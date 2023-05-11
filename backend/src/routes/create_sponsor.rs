@@ -31,13 +31,10 @@ pub async fn create_sponsor(state: State<AppState>, _user: User, payload: Json<R
 
     state.mongo.insert(&mongo_sponsor).await?;
 
-    let favours: Vec<_> = mongo_sponsor.favours
-        .iter()
-        .map(|favour| MeiliSponsorFavour::from(favour.clone()))
-        .collect();
-
     state.meili.insert_sponsor(&mongo_sponsor.clone().into()).await?;
-    state.meili.insert_favours(&favours).await?;
+    state.meili.insert_favours(
+        &MeiliSponsorFavour::from_sponsor_vec(&mongo_sponsor.favours)
+    ).await?;
 
     Ok(Json(RestSponsor::from(mongo_sponsor)).into_response())
 }

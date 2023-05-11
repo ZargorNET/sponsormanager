@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Sponsor {
-    #[serde(rename = "_id")]
+    #[serde(rename = "_id", with = "mongodb::bson::serde_helpers::uuid_1_as_binary")]
     pub uid: Uuid,
     pub name: String,
     pub short_description: String,
@@ -22,7 +22,7 @@ pub struct SponsorField {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SponsorFavour {
-    #[serde(rename = "_id")]
+    #[serde(rename = "_id", with = "mongodb::bson::serde_helpers::uuid_1_as_binary")]
     pub uid: Uuid,
     pub sponsor_uid: Uuid,
     pub condition: String,

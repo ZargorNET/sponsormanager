@@ -1,9 +1,11 @@
 use async_trait::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
+use serde::Serialize;
 
 use crate::AppState;
 
+#[derive(Serialize, Debug)]
 pub struct User {
     pub name: String,
     pub email: String,

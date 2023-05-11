@@ -18,5 +18,5 @@ tempfile = "3"
 async-trait = "0.1"
 tokio-util = { version = "0.7", features = ["io"] }
 futures = "0.3"
-mongodb = "2.5"
+mongodb = { version = "2.5", features = ["bson-uuid-1"] }
 meilisearch-sdk = "0.23"
