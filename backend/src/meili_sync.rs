@@ -41,15 +41,15 @@ async fn run(state: &AppState) -> anyhow::Result<()> {
 
     let mongo_sponsors = state.mongo.get_all().await?;
 
-    let deleted = delete_dangling_meili(&state, &mongo_sponsors).await?;
-    let inserted = insert_all_to_meili(&state, &mongo_sponsors).await?;
+    let deleted = delete_dangling_meili(state, &mongo_sponsors).await?;
+    let inserted = insert_all_to_meili(state, &mongo_sponsors).await?;
 
     info!("Suceessfully synced meili. Deleted: {}, Inserted: {}", deleted, inserted);
 
     Ok(())
 }
 
-async fn delete_dangling_meili(state: &AppState, mongo_docs: &Vec<Sponsor>) -> anyhow::Result<usize> {
+async fn delete_dangling_meili(state: &AppState, mongo_docs: &[Sponsor]) -> anyhow::Result<usize> {
     let mut deleted = 0;
     for meili in state.meili.get_all_sponsors().await? {
         if mongo_docs.iter().any(|s| s.uid == meili.id) {

@@ -19,9 +19,8 @@ const authStore = useAuthStore();
 const username = computed(() => authStore.user?.name ?? "");
 const loadingBar = useLoadingBar();
 
-
 const loggedInDropdownOptions = ref([
-    {
+/*    {
         label: `Season: ${authStore.user?.season ?? '----'}`,
         key: "season",
         props: {
@@ -29,7 +28,7 @@ const loggedInDropdownOptions = ref([
                 router.push("/seasonselect");
             }
         }
-    },
+    },*/
     {
         label: 'Logout',
         key: 'logout',

@@ -1,11 +1,17 @@
-pub use create_sponsor::create_sponsor;
+pub use create::create_sponsor;
 pub use delete::delete;
+pub use get::get_sponsor;
+pub use get_all::get_all;
 pub use healthcheck::get_health;
 pub use search::search;
+pub use update::update;
 pub use whoami::whoami;
 
 mod healthcheck;
-mod create_sponsor;
+mod create;
 mod search;
 mod delete;
 mod whoami;
+mod get;
+mod get_all;
+mod update;

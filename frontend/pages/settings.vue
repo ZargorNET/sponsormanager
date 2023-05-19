@@ -15,25 +15,26 @@
                     <n-button type="primary">Save</n-button>
                 </div>
 
-                <n-divider/>
-                <n-h2>
-                    Seasons
-                </n-h2>
 
-                <n-p>
-                    <template v-for="s in mainStore.seasons">
-                        {{ s }}<br/>
-                    </template>
-                </n-p>
+                <!--                <n-divider/>
+                                <n-h2>
+                                    Seasons
+                                </n-h2>
 
-                <div class="w-32">
-                    Add a season:
-                    <n-input maxlength="8" placeholder="Season"/>
-                    <div class="mt-2">
-                        <n-button type="primary">Add</n-button>
-                    </div>
-                </div>
+                                <n-p>
+                                    <template v-for="s in mainStore.seasons">
+                                        {{ s }}<br/>
+                                    </template>
+                                </n-p>
 
+                                <div class="w-32">
+                                    Add a season:
+                                    <n-input maxlength="8" placeholder="Season"/>
+                                    <div class="mt-2">
+                                        <n-button type="primary">Add</n-button>
+                                    </div>
+                                </div>
+                                    -->
 
                 <n-divider/>
                 <n-h2>

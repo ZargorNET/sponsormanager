@@ -1,3 +1,4 @@
+<!--
 <template>
     <div class="flex flex-col items-center">
         <div class="w-2/3">
@@ -30,3 +31,4 @@ const options = computed(() => mainStore.seasons.map(season => {
 
 
 </script>
+-->

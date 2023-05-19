@@ -3,7 +3,7 @@ use std::time::Duration;
 use futures::StreamExt;
 use mongodb::bson::doc;
 use mongodb::Collection;
-use mongodb::options::ClientOptions;
+use mongodb::options::{ClientOptions, ReplaceOptions};
 use uuid::Uuid;
 
 use crate::models::mongo::Sponsor;
@@ -45,6 +45,11 @@ impl MongoQueries {
 
     pub async fn delete(&self, uid: &Uuid) -> anyhow::Result<()> {
         self.sponsor_collection.delete_one(doc! {"_id": uid}, None).await?;
+        Ok(())
+    }
+
+    pub async fn update(&self, uid: &Uuid, sponsor: &Sponsor) -> anyhow::Result<()> {
+        self.sponsor_collection.replace_one(doc! {"_id": uid}, sponsor, ReplaceOptions::builder().upsert(false).build()).await?;
         Ok(())
     }
 

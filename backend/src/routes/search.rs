@@ -17,7 +17,7 @@ pub async fn search(state: State<AppState>, _user: User, query: Query<HashMap<St
         return Err(AppError(400, "no type query. must be sponsors or favours".to_string()));
     };
 
-    let returns = match typ.as_str() {
+    let returns = match typ.to_lowercase().as_str() {
         "sponsors" => {
             json!(futures::future::try_join_all(state.meili.get_sponsors(search).await?
                 .into_iter()

@@ -1,10 +1,8 @@
-import {Ref} from "vue";
-
 export const useMainStore = defineStore('main', () => {
-    const seasons: Ref<Array<string>> = ref(["2023", "2022"]);
+  //  const seasons: Ref<Array<string>> = ref(["2023", "2022"]);
 
 
-    return {seasons};
+    return {};
 });
 
 if (import.meta.hot) {
