@@ -32,5 +32,6 @@ pub struct SponsorFavour {
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Settings {
+    #[serde(rename = "mandatoryFields")]
     pub mandatory_fields: Vec<String>,
 }

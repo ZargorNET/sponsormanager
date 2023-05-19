@@ -3,6 +3,9 @@ use std::sync::Arc;
 use axum::response::Response;
 use axum::Router;
 use axum::routing::{get, post};
+use tower_http::cors;
+use tower_http::cors::CorsLayer;
+use tower_http::trace::TraceLayer;
 use tracing::info;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
@@ -46,7 +49,9 @@ async fn main() -> anyhow::Result<()> {
         .route("/get_all", get(routes::get_all))
         .route("/update", post(routes::update))
         .route("/settings/get", get(routes::settings::get))
-        .route("/settings/update", post(routes::settings::update));
+        .route("/settings/update", post(routes::settings::update))
+        .layer(CorsLayer::new().allow_origin(cors::Any).allow_headers(cors::Any).allow_methods(cors::Any))
+        .layer(TraceLayer::new_for_http());
 
 
     info!("Starting meili sync...");

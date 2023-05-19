@@ -19,6 +19,5 @@ export interface SponsorFavour {
     sponsorUid: string,
     condition: string,
     completed: boolean,
-    comment: string,
     dueUntil?: Date,
 }

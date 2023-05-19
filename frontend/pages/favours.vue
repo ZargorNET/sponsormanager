@@ -7,10 +7,16 @@
                 </n-h1>
                 Here is a list of all open favours that need to be addressed.
             </n-card>
+
+            {{ mainStore.getAllFavours() }}
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+const mainStore = useMainStore();
 
+onBeforeMount(async () => {
+    await mainStore.fetchAllSponsors();
+});
 </script>

@@ -1,13 +1,13 @@
-import {UseFetchOptions} from "#app/composables/fetch";
+import axios, {AxiosInstance} from "axios";
 
-export const jsonRequestOptions: UseFetchOptions<any> = {
-    method: "post",
-    headers: {
-        "content-type": "application/json"
-    }
-};
-
-export function get_recipe_image_url(key: String): String {
+export function getHttpClient(): AxiosInstance {
+    // @ts-ignore
     const {apiEndpoint} = useAppConfig();
-    return `${apiEndpoint}/image/${key}`;
+
+    return axios.create({
+        baseURL: apiEndpoint,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 }

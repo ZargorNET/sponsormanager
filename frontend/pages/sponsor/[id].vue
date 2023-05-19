@@ -164,7 +164,6 @@ const sponsor: Ref<Sponsor> = ref({
         condition: "Insta Posttt",
         completed: false,
         due_until: new Date(),
-        comment: "Maaybe?"
     }]
 });
 

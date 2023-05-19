@@ -49,9 +49,13 @@
 <script lang="ts" setup>
 
 import VariableInputs from "~/components/VariableInputs.vue";
-import {Ref} from "vue";
+import {ComputedRef} from "vue";
 
-const mandatoryFields: Ref<Array<string>> = ref(["abc", "defg"]);
+const mandatoryFields: ComputedRef<string[]> = computed(() => mainStore.settings.mandatoryFields);
 const mainStore = useMainStore();
+
+onBeforeMount(async () => {
+    await mainStore.fetchSettings();
+});
 
 </script>

@@ -1,3 +1,4 @@
+/*
 import {jsonRequestOptions} from "~/utils/http";
 import {FormData} from "node-fetch-native";
 import {Recipe} from "~/stores/recipes";
@@ -67,3 +68,4 @@ export async function uploadImage(file: File): Promise<string | undefined> {
         return undefined;
     }
 }
+*/
