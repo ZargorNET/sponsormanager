@@ -29,3 +29,8 @@ pub struct SponsorFavour {
     pub completed: bool,
     pub due_until: chrono::DateTime<Utc>,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct Settings {
+    pub mandatory_fields: Vec<String>,
+}

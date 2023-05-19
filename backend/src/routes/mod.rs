@@ -7,6 +7,8 @@ pub use search::search;
 pub use update::update;
 pub use whoami::whoami;
 
+pub mod settings;
+
 mod healthcheck;
 mod create;
 mod search;

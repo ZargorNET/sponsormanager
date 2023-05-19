@@ -44,7 +44,9 @@ async fn main() -> anyhow::Result<()> {
         .route("/whoami", get(routes::whoami))
         .route("/get/:sponsor_id", get(routes::get_sponsor))
         .route("/get_all", get(routes::get_all))
-        .route("/update", post(routes::update));
+        .route("/update", post(routes::update))
+        .route("/settings/get", get(routes::settings::get))
+        .route("/settings/update", post(routes::settings::update));
 
 
     info!("Starting meili sync...");

@@ -6,7 +6,7 @@ use mongodb::Collection;
 use mongodb::options::{ClientOptions, ReplaceOptions};
 use uuid::Uuid;
 
-use crate::models::mongo::Sponsor;
+use crate::models::mongo::{Settings, Sponsor};
 
 const DB_NAME: &str = "sponsormanager";
 
@@ -14,6 +14,7 @@ pub struct MongoQueries {
     pub client: mongodb::Client,
     pub db: mongodb::Database,
     pub sponsor_collection: Collection<Sponsor>,
+    pub settings_collection: Collection<Settings>
 }
 
 impl MongoQueries {
@@ -25,13 +26,14 @@ impl MongoQueries {
         let client = mongodb::Client::with_options(options)?;
         let db = client.database(DB_NAME);
         let sponsor_collection = db.collection("sponsors");
+        let settings_collection = db.collection("settings");
 
         client
             .database("admin")
             .run_command(doc! {"ping": 1}, None)
             .await?;
 
-        Ok(Self { client, db, sponsor_collection })
+        Ok(Self { client, db, sponsor_collection, settings_collection })
     }
 
     pub async fn insert(&self, sponsor: &Sponsor) -> anyhow::Result<()> {
@@ -60,5 +62,14 @@ impl MongoQueries {
             sponsors.push(sponsor?);
         }
         Ok(sponsors)
+    }
+
+    pub async fn get_settings(&self) -> anyhow::Result<Settings> {
+        Ok(self.settings_collection.find_one(None, None).await?.unwrap_or_default())
+    }
+
+    pub async fn update_settings(&self, settings: &Settings) -> anyhow::Result<()> {
+        self.settings_collection.replace_one(doc! {}, settings, ReplaceOptions::builder().upsert(true).build()).await?;
+        Ok(())
     }
 }
