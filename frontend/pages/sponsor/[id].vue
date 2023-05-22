@@ -50,7 +50,7 @@
                                 <n-collapse-item v-for="(field, index) in sponsor.fields" :title="field.name">
                                     <EditableInputField :edit="edit" v-model="sponsor.fields[index].value" multi-line/>
 
-                                    <template #header-extra v-if="edit">
+                                    <template #header-extra v-if="edit && !fieldIsMandatory(field.name)">
                                         <n-tooltip>
                                             <template #trigger>
                                                 <div class="text-2xl" @click="sponsor.fields.splice(index, 1)">
@@ -92,6 +92,7 @@ import {NButton, NInput} from "naive-ui";
 
 const route = useRoute();
 const dialog = useDialog();
+const mainStore = useMainStore();
 const favours: ComputedRef<SponsorFavour[]> = computed(() => {
     return [...sponsor.value.favours].sort((a, b) => (a.completed ? 1 : 0) - (b.completed ? 1 : 0));
 });
@@ -140,6 +141,10 @@ function addField() {
 function areYouSureToExit(e: BeforeUnloadEvent) {
     e.preventDefault();
     e.returnValue = "";
+}
+
+function fieldIsMandatory(field_name: string): boolean {
+    return mainStore.settings.mandatoryFields.includes(field_name);
 }
 
 const sponsor: Ref<Sponsor> = ref({
