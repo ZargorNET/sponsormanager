@@ -35,6 +35,8 @@ import Footer from "~/layouts/components/Footer.vue";
 const load = useLoadingBar()
 const notification = useNotification();
 
+window.$notification = notification;
+
 // TODO: Remove when https://github.com/vuejs/core/issues/5513 fixed
 const key = ref(0)
 const messages = [
