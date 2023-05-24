@@ -4,7 +4,6 @@ import {Ref} from "vue";
 import {Settings} from "~/utils/settings";
 
 export const useMainStore = defineStore('main', () => {
-    //  const seasons: Ref<Array<string>> = ref(["2023", "2022"]);
     const sponsors: Ref<Sponsor[]> = ref([]);
     const settings: Ref<Settings> = ref({} as Settings);
 
@@ -22,10 +21,12 @@ export const useMainStore = defineStore('main', () => {
         return sponsors.value.map((sponsor) => sponsor.favours).flat();
     }
 
-    fetchSettings();
-    fetchAllSponsors();
+    async function saveSettings() {
+        const res = await getHttpClient().post("/settings/update", settings.value);
+        settings.value = await res.data;
+    }
 
-    return {fetchAllSponsors, getAllFavours, fetchSettings, settings, sponsors};
+    return {fetchAllSponsors, getAllFavours, fetchSettings, saveSettings, settings, sponsors};
 
 });
 

@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -13,7 +15,7 @@ pub struct RestSponsor {
     #[serde(rename = "imageUrl")]
     pub image_url: Option<String>,
     pub fields: Vec<RestSponsorField>,
-    pub tags: Vec<String>,
+    pub tags: HashSet<String>,
     pub favours: Vec<RestSponsorFavour>,
     #[serde(rename = "favoursCompleted")]
     pub favours_completed: Option<bool>,

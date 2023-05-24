@@ -165,10 +165,10 @@ const sponsor: Ref<Sponsor> = ref({
     favoursCompleted: true,
     favours: [{
         uid: "a",
-        sponsor_uid: "dw",
+        sponsorUid: "dw",
         condition: "Insta Posttt",
         completed: false,
-        due_until: new Date(),
+        dueUntil: new Date(),
     }]
 });
 

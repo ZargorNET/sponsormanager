@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -10,7 +12,7 @@ pub struct Sponsor {
     pub short_description: String,
     pub image_url: Option<String>,
     pub fields: Vec<SponsorField>,
-    pub tags: Vec<String>,
+    pub tags: HashSet<String>,
     pub favours: Vec<SponsorFavour>,
 }
 
@@ -33,5 +35,5 @@ pub struct SponsorFavour {
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Settings {
     #[serde(rename = "mandatoryFields")]
-    pub mandatory_fields: Vec<String>,
+    pub mandatory_fields: HashSet<String>,
 }

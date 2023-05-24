@@ -31,11 +31,20 @@
 <script setup>
 import Navbar from "~/layouts/components/navbar/Navbar.vue";
 import Footer from "~/layouts/components/Footer.vue";
+import {useMainStore} from "~/stores/main";
 
+const mainStore = useMainStore();
 const load = useLoadingBar()
 const notification = useNotification();
+const loadingBar = useLoadingBar();
 
 window.$notification = notification;
+window.$loadingBar = loadingBar;
+
+onMounted(() => {
+    mainStore.fetchAllSponsors();
+    mainStore.fetchSettings();
+});
 
 // TODO: Remove when https://github.com/vuejs/core/issues/5513 fixed
 const key = ref(0)

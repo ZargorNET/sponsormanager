@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -9,7 +11,7 @@ pub struct MeiliSponsor {
     pub id: Uuid,
     pub name: String,
     pub short_description: String,
-    pub tags: Vec<String>,
+    pub tags: HashSet<String>,
     pub fields: Vec<MeiliSponsorField>,
 }
 

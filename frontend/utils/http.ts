@@ -1,5 +1,5 @@
 import axios, {AxiosError, AxiosInstance} from "axios";
-import {getNotificationApi} from "~/utils/misc";
+import {getLoadingBar, getNotificationApi} from "~/utils/misc";
 
 export function getHttpClient(): AxiosInstance {
     // @ts-ignore
@@ -12,10 +12,21 @@ export function getHttpClient(): AxiosInstance {
         },
     });
 
-    instance.interceptors.response.use(null, (err: AxiosError) => {
+    instance.interceptors.request.use((config) => {
+        getLoadingBar().start();
+        return config;
+    });
+    instance.interceptors.response.use((res) => {
+        getLoadingBar().finish();
+        return res;
+    }, (err: AxiosError) => {
+        getLoadingBar().error();
         console.error(`Error while sending request`, err);
 
-        getNotificationApi().error({title: "Error sending request. Please try again.", description: `${err.code} - ${err.message}`})
+        getNotificationApi().error({
+            title: "Error sending request. Please try again.",
+            description: `${err.code} - ${err.message}`
+        })
     });
 
     return instance;

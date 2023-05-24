@@ -22,15 +22,16 @@ const props = defineProps<{
     placeholder?: string
 }>();
 
-
-onMounted(() => {
-    if (props.items)
-        _items.value = props.items.map(i => {
-            return {value: i, focused: false};
-        });
-    updateEmit();
-
-});
+watch(
+    () => props.items,
+    (items) => {
+        if (items)
+            _items.value = items.map(i => {
+                return {value: i, focused: false};
+            });
+        updateCount();
+    }
+);
 
 function updateCount() {
     _items.value = _items.value.filter(i => i.focused || i.value !== "");

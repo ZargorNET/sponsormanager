@@ -10,9 +10,9 @@
                     Mandatory Fields
                 </n-h2>
                 <n-p>Fields that are required on each new sponsor entry</n-p>
-                <VariableInputs v-model:items="mandatoryFields" placeholder="Field Name"/>
+                <VariableInputs v-model:items="mainStore.settings.mandatoryFields" placeholder="Field Name"/>
                 <div class="mt-2">
-                    <n-button type="primary">Save</n-button>
+                    <n-button type="primary" @click="save()">Save</n-button>
                 </div>
 
 
@@ -35,7 +35,6 @@
                                     </div>
                                 </div>
                                     -->
-
                 <n-divider/>
                 <n-h2>
                     Statistics
@@ -47,15 +46,18 @@
 </template>
 
 <script lang="ts" setup>
-
 import VariableInputs from "~/components/VariableInputs.vue";
-import {ComputedRef} from "vue";
+import {getNotificationApi} from "~/utils/misc";
 
-const mandatoryFields: ComputedRef<string[]> = computed(() => mainStore.settings.mandatoryFields);
 const mainStore = useMainStore();
 
-onBeforeMount(async () => {
+onMounted(async () => {
     await mainStore.fetchSettings();
 });
+
+async function save() {
+    await mainStore.saveSettings();
+    getNotificationApi().success({title: "Settings saved!"})
+}
 
 </script>
