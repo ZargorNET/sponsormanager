@@ -4,6 +4,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::models::meili::MeiliSponsorFavour;
 use crate::models::mongo::{Sponsor, SponsorFavour, SponsorField};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -68,6 +69,18 @@ impl From<SponsorFavour> for RestSponsorFavour {
     fn from(value: SponsorFavour) -> Self {
         Self {
             uid: Some(value.uid),
+            sponsor_uid: Some(value.sponsor_uid),
+            condition: value.condition,
+            completed: value.completed,
+            due_until: value.due_until,
+        }
+    }
+}
+
+impl From<MeiliSponsorFavour> for RestSponsorFavour {
+    fn from(value: MeiliSponsorFavour) -> Self {
+        Self {
+            uid: Some(value.id),
             sponsor_uid: Some(value.sponsor_uid),
             condition: value.condition,
             completed: value.completed,

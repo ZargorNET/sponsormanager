@@ -1,7 +1,7 @@
 <template>
     <div class="flex">
         <div v-for="sponsor in sponsors" class="w-96 m-2">
-            <n-card>
+            <n-card class="h-[470px]">
                 <template #cover>
                     <NuxtLink :to="`/sponsor/${sponsor.uid}`">
                         <div class="h-72">
@@ -32,7 +32,7 @@
                     </n-tooltip>
                 </template>
                 <template #default>
-                    <n-ellipsis :line-clamp="5">
+                    <n-ellipsis :line-clamp="2">
                         {{ sponsor.shortDescription }}
                     </n-ellipsis>
                 </template>
@@ -42,6 +42,9 @@
                     </div>
                 </template>
             </n-card>
+        </div>
+        <div v-if="sponsors.length === 0" class="flex justify-center w-full">
+            <n-empty description="No sponsors found" size="huge"/>
         </div>
     </div>
 </template>

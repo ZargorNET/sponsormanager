@@ -10,6 +10,7 @@ use crate::models::mongo::{Sponsor, SponsorFavour, SponsorField};
 pub struct MeiliSponsor {
     pub id: Uuid,
     pub name: String,
+    #[serde(rename = "shortDescription")]
     pub short_description: String,
     pub tags: HashSet<String>,
     pub fields: Vec<MeiliSponsorField>,
@@ -27,6 +28,7 @@ pub struct MeiliSponsorFavour {
     pub sponsor_uid: Uuid,
     pub condition: String,
     pub completed: bool,
+    #[serde(rename = "dueUntil")]
     pub due_until: chrono::DateTime<Utc>,
 }
 

@@ -1,7 +1,6 @@
 <template>
     <n-input-group v-for="(item, index) in _items" :key="item" class="mt-2">
         <n-input :placeholder="placeholder" class="mr-2"
-                 @keyup="updateEmit();"
                  @focus="() => item.focused = true"
                  @blur="() => {item.focused = false; updateEmit();}"
                  v-model:value="item.value"/>
@@ -19,7 +18,7 @@ const _items: Ref<Array<{ value: string, focused: boolean }>> = ref([{value: "",
 
 const props = defineProps<{
     items?: string[]
-    placeholder?: string
+    placeholder: string
 }>();
 
 watch(

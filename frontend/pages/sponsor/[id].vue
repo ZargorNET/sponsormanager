@@ -43,6 +43,7 @@
                     <div class="h-full w-full p-2 flex child:flex-1">
                         <div>
                             Fields:
+                            <div class="h-6"></div>
                             <n-collapse>
                                 <n-collapse-item title="Description">
                                     <EditableInputField :edit="edit" v-model="sponsor.shortDescription" multi-line/>
@@ -68,11 +69,11 @@
                         </div>
                         <div>
                             Favours:
-                            <n-collapse>
-                                <n-collapse-item v-for="favour in favours" :title="favour.condition">
-                                    {{ favour }}
-                                </n-collapse-item>
-                            </n-collapse>
+                            <div class="h-6"></div>
+                            <SponsorFavours v-model:favours="sponsor.favours" :edit="edit"/>
+                            <div class="flex justify-center mt-4">
+                                <n-button type="success" v-if="edit" @click="addFavour()">Add</n-button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -85,29 +86,47 @@
 </template>
 
 <script lang="ts" setup>
-import {Sponsor, SponsorFavour} from "~/utils/sponsor";
+import {Sponsor} from "~/utils/sponsor";
 import SponsorImage from "~/components/SponsorImage.vue";
-import {ComputedRef, Ref} from "vue";
+import {Ref} from "vue";
 import {NButton, NInput} from "naive-ui";
+import SponsorFavours from "~/components/SponsorFavours.vue";
+import {createUUID} from "~/utils/misc";
 
 const route = useRoute();
 const dialog = useDialog();
 const mainStore = useMainStore();
-const favours: ComputedRef<SponsorFavour[]> = computed(() => {
-    return [...sponsor.value.favours].sort((a, b) => (a.completed ? 1 : 0) - (b.completed ? 1 : 0));
-});
 const edit: Ref<boolean> = ref(false);
 
-function editBtn() {
+async function editBtn() {
     if (!edit.value) {
-        edit.value = true;
+        await mainStore.fetchSettings();
+        for (let missingFieldNames of mainStore.settings.mandatoryFields.filter(fieldName => !sponsor.value.fields.find(f => f.name === fieldName))) {
+            sponsor.value.fields.push({name: missingFieldNames, value: ""})
+        }
 
+        sponsor.value.fields.sort((a, b) => {
+            const aMandatory = fieldIsMandatory(a.name);
+            const bMandatory = fieldIsMandatory(b.name);
+
+            if (aMandatory && bMandatory)
+                return 0;
+            else if (aMandatory)
+                return -1;
+            else
+                return 1;
+
+        })
+
+        edit.value = true;
         window.addEventListener("beforeunload", areYouSureToExit);
         return;
     }
 
     window.removeEventListener("beforeunload", areYouSureToExit);
     edit.value = false;
+
+    sponsor.value.favours = sponsor.value.favours.filter(s => s.condition.trim() !== "");
 }
 
 onBeforeUnmount(() => {
@@ -135,6 +154,16 @@ function addField() {
             sponsor.value.fields.push({name: addFieldValue.value, value: ""})
             res();
         })
+    });
+}
+
+function addFavour() {
+    sponsor.value.favours.push({
+        uid: createUUID(),
+        completed: false,
+        condition: "",
+        dueUntil: new Date(2099, 12, 31),
+        sponsorUid: sponsor.value.uid as string
     })
 }
 

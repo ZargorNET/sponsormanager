@@ -8,6 +8,7 @@ use serde_json::json;
 use crate::{AppResult, AppState};
 use crate::auth::User;
 use crate::error::AppError;
+use crate::models::rest::{RestSponsor, RestSponsorFavour};
 
 pub async fn search(state: State<AppState>, _user: User, query: Query<HashMap<String, String>>) -> AppResult {
     let Some(search) = query.get("search") else {
@@ -22,10 +23,10 @@ pub async fn search(state: State<AppState>, _user: User, query: Query<HashMap<St
             json!(futures::future::try_join_all(state.meili.get_sponsors(search).await?
                 .into_iter()
                 .map(|x| state.mongo.get(x.id))).await?
-                .into_iter().flatten().collect::<Vec<_>>())
+                .into_iter().flatten().map(RestSponsor::from).collect::<Vec<_>>())
         }
         "favours" => {
-            json!(state.meili.get_favours(search).await?)
+            json!(state.meili.get_favours(search).await?.into_iter().map(RestSponsorFavour::from).collect::<Vec<_>>())
         }
         _ => return Err(AppError(400, "invalid type query".to_string()))
     };

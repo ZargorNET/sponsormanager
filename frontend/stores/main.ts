@@ -12,6 +12,14 @@ export const useMainStore = defineStore('main', () => {
         sponsors.value = await res.data;
     }
 
+    async function fetchSingleSponsor(uid: string) {
+        const res = await getHttpClient().get(`/get/${uid}`);
+        const data = await res.data as Sponsor;
+
+        sponsors.value = sponsors.value.filter(s => s.uid !== data.uid);
+        sponsors.value.push(data);
+    }
+
     async function fetchSettings() {
         const res = await getHttpClient().get("/settings/get");
         settings.value = await res.data;
@@ -26,7 +34,7 @@ export const useMainStore = defineStore('main', () => {
         settings.value = await res.data;
     }
 
-    return {fetchAllSponsors, getAllFavours, fetchSettings, saveSettings, settings, sponsors};
+    return {fetchAllSponsors, getAllFavours, fetchSingleSponsor, fetchSettings, saveSettings, settings, sponsors};
 
 });
 
