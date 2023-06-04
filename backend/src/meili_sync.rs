@@ -52,7 +52,7 @@ async fn run(state: &AppState) -> anyhow::Result<()> {
 async fn delete_dangling_meili(state: &AppState, mongo_docs: &[Sponsor]) -> anyhow::Result<usize> {
     let mut deleted = 0;
     for meili in state.meili.get_all_sponsors().await? {
-        if mongo_docs.iter().any(|s| s.uid == meili.id) {
+        if mongo_docs.iter().any(|s| s.uid == meili.id.into()) {
             continue;
         }
 
@@ -61,7 +61,7 @@ async fn delete_dangling_meili(state: &AppState, mongo_docs: &[Sponsor]) -> anyh
     }
 
     for meili in state.meili.get_all_favours().await? {
-        if mongo_docs.iter().any(|s| s.favours.iter().any(|f| f.uid == meili.id)) {
+        if mongo_docs.iter().any(|s| s.favours.iter().any(|f| f.uid == meili.id.into())) {
             continue;
         }
 

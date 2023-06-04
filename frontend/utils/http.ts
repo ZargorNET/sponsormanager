@@ -1,7 +1,7 @@
 import axios, {AxiosError, AxiosInstance} from "axios";
 import {getLoadingBar, getNotificationApi} from "~/utils/misc";
 
-export function getHttpClient(): AxiosInstance {
+export function getHttpClient(addErrorInterceptor: boolean = true): AxiosInstance {
     // @ts-ignore
     const {apiEndpoint} = useAppConfig();
 
@@ -16,10 +16,14 @@ export function getHttpClient(): AxiosInstance {
         getLoadingBar().start();
         return config;
     });
+
     instance.interceptors.response.use((res) => {
         getLoadingBar().finish();
         return res;
     }, (err: AxiosError) => {
+        if (!addErrorInterceptor)
+            return;
+
         getLoadingBar().error();
         console.error(`Error while sending request`, err);
 

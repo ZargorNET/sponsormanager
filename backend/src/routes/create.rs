@@ -14,15 +14,15 @@ pub async fn create_sponsor(state: State<AppState>, _user: User, payload: Json<R
     payload.uid = Some(Uuid::new_v4());
 
     let mongo_sponsor = Sponsor {
-        uid: payload.uid.unwrap(),
+        uid: payload.uid.unwrap().into(),
         name: payload.name,
         short_description: payload.short_description,
         image_url: payload.image_url,
         fields: payload.fields.into_iter().map(|field| SponsorField { name: field.name, value: field.value }).collect(),
         tags: payload.tags,
         favours: payload.favours.into_iter().map(|favour| SponsorFavour {
-            uid: Uuid::new_v4(),
-            sponsor_uid: payload.uid.unwrap(),
+            uid: Uuid::new_v4().into(),
+            sponsor_uid: payload.uid.unwrap().into(),
             condition: favour.condition,
             completed: favour.completed,
             due_until: favour.due_until,

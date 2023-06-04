@@ -44,7 +44,7 @@ impl From<Sponsor> for RestSponsor {
         let favours_completed = Some(value.favours.iter().all(|f| f.completed));
 
         Self {
-            uid: Some(value.uid),
+            uid: Some(value.uid.into()),
             name: value.name,
             short_description: value.short_description,
             image_url: value.image_url,
@@ -68,8 +68,8 @@ impl From<SponsorField> for RestSponsorField {
 impl From<SponsorFavour> for RestSponsorFavour {
     fn from(value: SponsorFavour) -> Self {
         Self {
-            uid: Some(value.uid),
-            sponsor_uid: Some(value.sponsor_uid),
+            uid: Some(value.uid.into()),
+            sponsor_uid: Some(value.sponsor_uid.into()),
             condition: value.condition,
             completed: value.completed,
             due_until: value.due_until,

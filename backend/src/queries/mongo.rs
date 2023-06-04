@@ -1,10 +1,9 @@
 use std::time::Duration;
 
 use futures::StreamExt;
+use mongodb::{bson, Collection};
 use mongodb::bson::doc;
-use mongodb::Collection;
 use mongodb::options::{ClientOptions, ReplaceOptions};
-use uuid::Uuid;
 
 use crate::models::mongo::{Settings, Sponsor};
 
@@ -41,16 +40,16 @@ impl MongoQueries {
         Ok(())
     }
 
-    pub async fn get(&self, uid: Uuid) -> anyhow::Result<Option<Sponsor>> {
+    pub async fn get(&self, uid: bson::Uuid) -> anyhow::Result<Option<Sponsor>> {
         Ok(self.sponsor_collection.find_one(Some(doc! {"_id": uid}), None).await?)
     }
 
-    pub async fn delete(&self, uid: &Uuid) -> anyhow::Result<()> {
+    pub async fn delete(&self, uid: &bson::Uuid) -> anyhow::Result<()> {
         self.sponsor_collection.delete_one(doc! {"_id": uid}, None).await?;
         Ok(())
     }
 
-    pub async fn update(&self, uid: &Uuid, sponsor: &Sponsor) -> anyhow::Result<()> {
+    pub async fn update(&self, uid: &bson::Uuid, sponsor: &Sponsor) -> anyhow::Result<()> {
         self.sponsor_collection.replace_one(doc! {"_id": uid}, sponsor, ReplaceOptions::builder().upsert(false).build()).await?;
         Ok(())
     }

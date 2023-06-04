@@ -1,10 +1,10 @@
 <template>
-    <div class="flex">
+    <div class="flex flex-wrap justify-center">
         <div v-for="sponsor in sponsors" class="w-96 m-2">
             <n-card class="h-[470px]">
                 <template #cover>
                     <NuxtLink :to="`/sponsor/${sponsor.uid}`">
-                        <div class="h-72">
+                        <div class="h-72 w-96">
                             <SponsorImage :sponsor="sponsor"/>
                         </div>
                     </NuxtLink>

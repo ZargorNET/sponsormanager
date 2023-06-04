@@ -13,11 +13,9 @@ export const useMainStore = defineStore('main', () => {
     }
 
     async function fetchSingleSponsor(uid: string) {
-        const res = await getHttpClient().get(`/get/${uid}`);
+        const res = await getHttpClient(false).get(`/get/${uid}`);
         const data = await res.data as Sponsor;
-
-        sponsors.value = sponsors.value.filter(s => s.uid !== data.uid);
-        sponsors.value.push(data);
+        _replaceSponsor(data);
     }
 
     async function fetchSettings() {
@@ -34,7 +32,34 @@ export const useMainStore = defineStore('main', () => {
         settings.value = await res.data;
     }
 
-    return {fetchAllSponsors, getAllFavours, fetchSingleSponsor, fetchSettings, saveSettings, settings, sponsors};
+    async function createOrUpdateSponsor(sponsor: Sponsor, update: boolean): Promise<Sponsor> {
+        const res = await getHttpClient().post(`/${update ? 'update' : 'create'}`, sponsor);
+        const data = await res.data as Sponsor;
+        _replaceSponsor(data);
+        return data;
+    }
+
+    async function deleteSponsor(sponsor: Sponsor) {
+        await getHttpClient().post("/delete", {uid: sponsor.uid});
+        sponsors.value = sponsors.value.filter(s => s.uid !== sponsor.uid);
+    }
+
+    function _replaceSponsor(sponsor: Sponsor) {
+        sponsors.value = sponsors.value.filter(s => s.uid !== sponsor.uid);
+        sponsors.value.push(sponsor);
+    }
+
+    return {
+        fetchAllSponsors,
+        getAllFavours,
+        fetchSingleSponsor,
+        fetchSettings,
+        saveSettings,
+        createOrUpdateSponsor,
+        deleteSponsor,
+        settings,
+        sponsors
+    };
 
 });
 

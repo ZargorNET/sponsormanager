@@ -35,7 +35,7 @@ pub struct MeiliSponsorFavour {
 impl From<Sponsor> for MeiliSponsor {
     fn from(value: Sponsor) -> Self {
         MeiliSponsor {
-            id: value.uid,
+            id: value.uid.into(),
             name: value.name,
             short_description: value.short_description,
             tags: value.tags,
@@ -56,9 +56,9 @@ impl From<SponsorField> for MeiliSponsorField {
 impl From<SponsorFavour> for MeiliSponsorFavour {
     fn from(value: SponsorFavour) -> Self {
         Self {
-            id: value.uid,
+            id: value.uid.into(),
             condition: value.condition,
-            sponsor_uid: value.sponsor_uid,
+            sponsor_uid: value.sponsor_uid.into(),
             completed: value.completed,
             due_until: value.due_until,
         }

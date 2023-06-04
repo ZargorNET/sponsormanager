@@ -22,7 +22,7 @@ pub async fn search(state: State<AppState>, _user: User, query: Query<HashMap<St
         "sponsors" => {
             json!(futures::future::try_join_all(state.meili.get_sponsors(search).await?
                 .into_iter()
-                .map(|x| state.mongo.get(x.id))).await?
+                .map(|x| state.mongo.get(x.id.into()))).await?
                 .into_iter().flatten().map(RestSponsor::from).collect::<Vec<_>>())
         }
         "favours" => {

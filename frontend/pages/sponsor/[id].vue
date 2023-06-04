@@ -18,7 +18,7 @@
                             <SponsorImage :sponsor="sponsor"/>
                         </div>
                         <p class="text-center text-3xl text-bold mt-2">
-                            {{ sponsor.name }}
+                            <EditableInputField v-model="sponsor.name" :edit="edit"/>
                         </p>
 
                         <div class="flex mt-2">
@@ -38,6 +38,9 @@
                             Favours <span class="float-right">{{ sponsor.favours.filter(f => f.completed).length }}/{{
                                 sponsor.favours.length
                             }}</span>
+                        </div>
+                        <div class="flex justify-center" v-if="edit">
+                            <n-button size="large" type="error" @click="deleteSponsor()">Delete Sponsor</n-button>
                         </div>
                     </div>
                     <div class="h-full w-full p-2 flex child:flex-1">
@@ -91,12 +94,44 @@ import SponsorImage from "~/components/SponsorImage.vue";
 import {Ref} from "vue";
 import {NButton, NInput} from "naive-ui";
 import SponsorFavours from "~/components/SponsorFavours.vue";
-import {createUUID} from "~/utils/misc";
+import {createUUID, getNotificationApi} from "~/utils/misc";
 
 const route = useRoute();
+const router = useRouter();
 const dialog = useDialog();
 const mainStore = useMainStore();
 const edit: Ref<boolean> = ref(false);
+const routeSponsorUid = route.params.id as string;
+const sponsor: Ref<Sponsor> = ref({
+    uid: undefined,
+    name: "New Sponsor",
+    shortDescription: "",
+    fields: [],
+    tags: [],
+    favoursCompleted: true,
+    favours: []
+});
+
+
+onBeforeMount(async () => {
+    if (routeSponsorUid !== "create") {
+        try {
+            await mainStore.fetchSingleSponsor(routeSponsorUid);
+        } catch (ignore) {
+        }
+
+        const found = mainStore.sponsors.find(s => s.uid === routeSponsorUid);
+        if (found === undefined) {
+            getNotificationApi().error({title: "Sponsor not found", duration: 4000});
+            await router.push("/");
+            return;
+        }
+
+        sponsor.value = found;
+    } else {
+        await editBtn();
+    }
+});
 
 async function editBtn() {
     if (!edit.value) {
@@ -123,10 +158,15 @@ async function editBtn() {
         return;
     }
 
-    window.removeEventListener("beforeunload", areYouSureToExit);
-    edit.value = false;
-
     sponsor.value.favours = sponsor.value.favours.filter(s => s.condition.trim() !== "");
+    recalculateFavoursCompleted();
+
+    const newSponsor = await mainStore.createOrUpdateSponsor(sponsor.value, sponsor.value.uid !== undefined);
+    await router.push(`/sponsor/${newSponsor.uid}`);
+
+    edit.value = false;
+    window.removeEventListener("beforeunload", areYouSureToExit);
+    getNotificationApi().success({title: "Success!", duration: 4000});
 }
 
 onBeforeUnmount(() => {
@@ -176,29 +216,17 @@ function fieldIsMandatory(field_name: string): boolean {
     return mainStore.settings.mandatoryFields.includes(field_name);
 }
 
-const sponsor: Ref<Sponsor> = ref({
-    uid: "dw",
-    name: "Sponsor1",
-    shortDescription: "xD",
-    fields: [
-        {
-            name: "wer machts?",
-            value: "conner hat gesagt er macht es"
-        },
-        {
-            name: "besonderheiten? anyy?",
-            value: "abc hehehehehhwhwdu qd hqwjldjqw dj qw hqwd hqhd qwlid uqwhduqwiud3298r8wfdsv iu wqeuifadsf 3p892iuebjif jbh"
-        }
-    ],
-    tags: ["junge", "xD"],
-    favoursCompleted: true,
-    favours: [{
-        uid: "a",
-        sponsorUid: "dw",
-        condition: "Insta Posttt",
-        completed: false,
-        dueUntil: new Date(),
-    }]
-});
+function recalculateFavoursCompleted() {
+    sponsor.value.favoursCompleted = sponsor.value.favours.find(f => !f.completed) === undefined;
+}
+
+async function deleteSponsor() {
+    if (sponsor.value.uid !== undefined) {
+        await mainStore.deleteSponsor(sponsor.value);
+        getNotificationApi().success({title: "Sponsor deleted!", duration: 4000});
+    }
+
+    await router.push("/");
+}
 
 </script>
