@@ -14,10 +14,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }
-tempfile = "3"
 async-trait = "0.1"
-tokio-util = { version = "0.7", features = ["io"] }
 futures = "0.3"
 mongodb = { version = "2.5", features = ["bson-uuid-1"] }
 meilisearch-sdk = "0.23"
 tower-http = { version = "0.4", features = ["cors", "trace"] }
+tokio-util = { version = "0.7", features = ["compat"] }
+infer = "0.13"

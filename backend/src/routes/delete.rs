@@ -18,12 +18,13 @@ pub async fn delete(state: State<AppState>, _user: User, Json(ds): Json<DeleteSt
     let uid = ds.uid;
 
     let Some(sponsor) = state.mongo.get(uid.into()).await? else {
-        return Err(AppError(400, "sponsor not found".to_string()));
+        return Err(AppError::new(400, "sponsor not found"));
     };
 
     let favours = sponsor.favours.into_iter()
         .map(|f| f.uid.into()).collect::<Vec<uuid::Uuid>>();
 
+    state.mongo.delete_logo(&uid.into()).await?;
     state.mongo.delete(&uid.into()).await?;
     state.meili.delete_sponsor(&uid).await?;
     state.meili.delete_favours(&favours).await?;

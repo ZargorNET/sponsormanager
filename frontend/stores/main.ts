@@ -32,9 +32,20 @@ export const useMainStore = defineStore('main', () => {
         settings.value = await res.data;
     }
 
-    async function createOrUpdateSponsor(sponsor: Sponsor, update: boolean): Promise<Sponsor> {
+    async function createOrUpdateSponsor(sponsor: Sponsor, update: boolean, logo: File | undefined): Promise<Sponsor> {
         const res = await getHttpClient().post(`/${update ? 'update' : 'create'}`, sponsor);
-        const data = await res.data as Sponsor;
+        let data = await res.data as Sponsor;
+
+        if (logo) {
+            const form = new FormData();
+            form.set("sponsor_uid", data.uid!);
+            form.set("data", logo);
+
+            const res = await getHttpClient().post("/update_logo", form);
+            data = await res.data as Sponsor;
+            data.imageUrl = data.imageUrl + "?t=" + Math.random() * 100; // force refresh
+        }
+
         _replaceSponsor(data);
         return data;
     }

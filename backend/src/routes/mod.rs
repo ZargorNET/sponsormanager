@@ -1,19 +1,13 @@
-pub use create::create_sponsor;
-pub use delete::delete;
-pub use get::get_sponsor;
-pub use get_all::get_all;
-pub use healthcheck::get_health;
-pub use search::search;
-pub use update::update;
-pub use whoami::whoami;
+macro_rules! import_same_name {
+    ($($e:ident),*) => {
+        $(
+            mod $e;
+            pub use $e::$e;
+        )*
+    }
+}
+
 
 pub mod settings;
 
-mod healthcheck;
-mod create;
-mod search;
-mod delete;
-mod whoami;
-mod get;
-mod get_all;
-mod update;
+import_same_name!(create, delete, get, get_all, get_logo, healthcheck, search, update, update_logo, whoami);

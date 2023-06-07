@@ -15,7 +15,7 @@
                 <div class="flex">
                     <div class="border-r-2 border-gray-600 p-2 mr-2">
                         <div class="w-72 h-72">
-                            <SponsorImage :sponsor="sponsor"/>
+                            <SponsorImage :sponsor="sponsor" :edit="edit" @change-logo="changeLogo"/>
                         </div>
                         <p class="text-center text-3xl text-bold mt-2">
                             <EditableInputField v-model="sponsor.name" :edit="edit"/>
@@ -111,6 +111,8 @@ const sponsor: Ref<Sponsor> = ref({
     favoursCompleted: true,
     favours: []
 });
+// will only be Some if a file has been chosen
+let newLogo: File | undefined = undefined;
 
 
 onBeforeMount(async () => {
@@ -161,8 +163,14 @@ async function editBtn() {
     sponsor.value.favours = sponsor.value.favours.filter(s => s.condition.trim() !== "");
     recalculateFavoursCompleted();
 
-    const newSponsor = await mainStore.createOrUpdateSponsor(sponsor.value, sponsor.value.uid !== undefined);
-    await router.push(`/sponsor/${newSponsor.uid}`);
+    const isNewSponsor = sponsor.value.uid == undefined;
+
+    const newSponsor = await mainStore.createOrUpdateSponsor(sponsor.value, !isNewSponsor, newLogo);
+    newLogo = undefined;
+    sponsor.value = newSponsor;
+
+    if (isNewSponsor)
+        await router.push(`/sponsor/${newSponsor.uid}`);
 
     edit.value = false;
     window.removeEventListener("beforeunload", areYouSureToExit);
@@ -202,7 +210,7 @@ function addFavour() {
         uid: createUUID(),
         completed: false,
         condition: "",
-        dueUntil: new Date(2099, 12, 31),
+        dueUntil: new Date().getMilliseconds(),
         sponsorUid: sponsor.value.uid as string
     })
 }
@@ -227,6 +235,10 @@ async function deleteSponsor() {
     }
 
     await router.push("/");
+}
+
+function changeLogo(file: File) {
+    newLogo = file;
 }
 
 </script>

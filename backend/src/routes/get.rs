@@ -11,11 +11,11 @@ use crate::auth::User;
 use crate::error::AppError;
 use crate::models::rest::RestSponsor;
 
-pub async fn get_sponsor(state: State<AppState>, _user: User, Path(sponsor_id): Path<String>) -> AppResult {
-    let uid = Uuid::from_str(&sponsor_id)?;
+pub async fn get(state: State<AppState>, _user: User, Path(sponsor_uid): Path<String>) -> AppResult {
+    let uid = Uuid::from_str(&sponsor_uid)?;
 
     match state.mongo.get(uid.into()).await? {
-        None => Err(AppError(404, "sponsor not found".to_string())),
+        None => Err(AppError::new(404, "sponsor not found")),
         Some(sponsor) => Ok(Json(json!(RestSponsor::from(sponsor))).into_response())
     }
 }

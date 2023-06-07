@@ -7,9 +7,6 @@ export function getHttpClient(addErrorInterceptor: boolean = true): AxiosInstanc
 
     const instance = axios.create({
         baseURL: apiEndpoint,
-        headers: {
-            'Content-Type': 'application/json',
-        },
     });
 
     instance.interceptors.request.use((config) => {
@@ -29,7 +26,7 @@ export function getHttpClient(addErrorInterceptor: boolean = true): AxiosInstanc
 
         getNotificationApi().error({
             title: "Error sending request. Please try again.",
-            description: `${err.code} - ${err.message}`
+            description: `${err.code} - ${JSON.stringify(err.response?.data)}`
         })
     });
 

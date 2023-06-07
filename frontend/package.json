@@ -21,6 +21,7 @@
     "@css-render/vue3-ssr": "^0.15.12",
     "@huntersofbook/naive-ui-nuxt": "^0.7.1",
     "@pinia/nuxt": "^0.4.9",
+    "@vuepic/vue-datepicker": "^5.2.0",
     "axios": "^1.4.0",
     "pinia": "^2.0.35"
   },

@@ -9,7 +9,7 @@ use crate::models::meili::MeiliSponsorFavour;
 use crate::models::mongo::{Sponsor, SponsorFavour, SponsorField};
 use crate::models::rest::RestSponsor;
 
-pub async fn create_sponsor(state: State<AppState>, _user: User, payload: Json<RestSponsor>) -> AppResult {
+pub async fn create(state: State<AppState>, _user: User, payload: Json<RestSponsor>) -> AppResult {
     let mut payload = payload.0;
     payload.uid = Some(Uuid::new_v4());
 

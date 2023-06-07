@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use axum::extract::DefaultBodyLimit;
 use axum::response::Response;
 use axum::Router;
 use axum::routing::{get, post};
@@ -40,18 +41,21 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .route("/", get(|| async { "Hello World. " }))
-        .route("/health", get(routes::get_health))
-        .route("/create", post(routes::create_sponsor))
+        .route("/health", get(routes::healthcheck))
+        .route("/create", post(routes::create))
         .route("/search", get(routes::search))
         .route("/delete", post(routes::delete))
         .route("/whoami", get(routes::whoami))
-        .route("/get/:sponsor_id", get(routes::get_sponsor))
+        .route("/get/:sponsor_uid", get(routes::get))
         .route("/get_all", get(routes::get_all))
+        .route("/get_logo/:sponsor_uid", get(routes::get_logo))
         .route("/update", post(routes::update))
+        .route("/update_logo", post(routes::update_logo))
         .route("/settings/get", get(routes::settings::get))
         .route("/settings/update", post(routes::settings::update))
         .layer(CorsLayer::new().allow_origin(cors::Any).allow_headers(cors::Any).allow_methods(cors::Any))
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+        .layer(DefaultBodyLimit::max(30 * 1024 * 1024));
 
 
     info!("Starting meili sync...");

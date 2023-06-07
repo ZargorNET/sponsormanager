@@ -12,10 +12,10 @@ use crate::models::rest::{RestSponsor, RestSponsorFavour};
 
 pub async fn search(state: State<AppState>, _user: User, query: Query<HashMap<String, String>>) -> AppResult {
     let Some(search) = query.get("search") else {
-        return Err(AppError(400, "no search query".to_string()));
+        return Err(AppError::new(400, "no search query"));
     };
     let Some(typ) = query.get("type") else {
-        return Err(AppError(400, "no type query. must be sponsors or favours".to_string()));
+        return Err(AppError::new(400, "no type query. must be sponsors or favours"));
     };
 
     let returns = match typ.to_lowercase().as_str() {
@@ -28,7 +28,7 @@ pub async fn search(state: State<AppState>, _user: User, query: Query<HashMap<St
         "favours" => {
             json!(state.meili.get_favours(search).await?.into_iter().map(RestSponsorFavour::from).collect::<Vec<_>>())
         }
-        _ => return Err(AppError(400, "invalid type query".to_string()))
+        _ => return Err(AppError::new(400, "invalid type query"))
     };
 
     Ok(Json(json!({"results": returns})).into_response())

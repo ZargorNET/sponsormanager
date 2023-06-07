@@ -37,17 +37,19 @@
                     </div>
 
                     <div class="child:rounded child:bg-[#101014] child:p-1 flex relative">
-                        <NuxtLink v-if="fetchSponsor && getSponsor(favour.sponsorUid)"
+                        <NuxtLink v-if="fetchSponsor  && getSponsor(favour.sponsorUid)"
                                   :to="`/sponsor/${favour.sponsorUid}`">
                             {{ getSponsor(favour.sponsorUid).name }}
                         </NuxtLink>
-                        <div class="ml-auto text-md flex items-center" :class="{'cursor-pointer': edit}"
+                        <div class="ml-auto text-md flex items-center"
+                             :class="{'cursor-pointer': edit, 'text-red-500': isOverdue(favour)}"
                              @click="edit && toggleDate(favour)">
                             <Icon name="material-symbols:calendar-today" class="text-xl mr-0.5"/>
                             {{ new Date(favour.dueUntil).toDateString() }}
                         </div>
                         <div class="absolute right-0 top-8 bg-none z-10" v-if="viewDatePicker.has(favour.uid)">
-                            <n-date-picker panel type="date" v-model:value="favour.dueUntil as number"/>
+                            <VueDatePicker dark v-model="favour.dueUntil" inline :enable-time-picker="false"
+                                           auto-apply close-on-auto-apply close-on-scroll ou/>
                         </div>
                     </div>
                 </div>
@@ -61,6 +63,8 @@
 
 <script setup lang="ts">
 import {Sponsor, SponsorFavour} from "~/utils/sponsor";
+import VueDatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css'
 
 const props = defineProps<{
     favours: SponsorFavour[],
@@ -96,5 +100,9 @@ function toggleDate(favour: SponsorFavour) {
         viewDatePicker.value.delete(favour.uid);
     else
         viewDatePicker.value.add(favour.uid);
+}
+
+function isOverdue(favour: SponsorFavour): boolean {
+    return favour.dueUntil <= new Date().setHours(0, 0, 0, 0);
 }
 </script>

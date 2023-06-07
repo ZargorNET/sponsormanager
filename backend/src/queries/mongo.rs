@@ -1,9 +1,12 @@
 use std::time::Duration;
 
-use futures::StreamExt;
-use mongodb::{bson, Collection};
+use anyhow::anyhow;
+use axum::body::Bytes;
+use futures::{AsyncWriteExt, StreamExt};
+use mongodb::{bson, Collection, GridFsBucket};
 use mongodb::bson::doc;
-use mongodb::options::{ClientOptions, ReplaceOptions};
+use mongodb::options::{ClientOptions, GridFsBucketOptions, GridFsFindOptions, ReplaceOptions};
+use tokio_util::compat::FuturesAsyncReadCompatExt;
 
 use crate::models::mongo::{Settings, Sponsor};
 
@@ -13,7 +16,8 @@ pub struct MongoQueries {
     pub client: mongodb::Client,
     pub db: mongodb::Database,
     pub sponsor_collection: Collection<Sponsor>,
-    pub settings_collection: Collection<Settings>
+    pub settings_collection: Collection<Settings>,
+    pub logo_bucket: GridFsBucket,
 }
 
 impl MongoQueries {
@@ -26,13 +30,14 @@ impl MongoQueries {
         let db = client.database(DB_NAME);
         let sponsor_collection = db.collection("sponsors");
         let settings_collection = db.collection("settings");
+        let logo_bucket = db.gridfs_bucket(GridFsBucketOptions::builder().bucket_name(Some("logos".to_string())).build());
 
         client
             .database("admin")
             .run_command(doc! {"ping": 1}, None)
             .await?;
 
-        Ok(Self { client, db, sponsor_collection, settings_collection })
+        Ok(Self { client, db, sponsor_collection, settings_collection, logo_bucket })
     }
 
     pub async fn insert(&self, sponsor: &Sponsor) -> anyhow::Result<()> {
@@ -70,5 +75,39 @@ impl MongoQueries {
     pub async fn update_settings(&self, settings: &Settings) -> anyhow::Result<()> {
         self.settings_collection.replace_one(doc! {}, settings, ReplaceOptions::builder().upsert(true).build()).await?;
         Ok(())
+    }
+
+    pub async fn upload_logo(&self, sponsor_uid: &bson::Uuid, file: Bytes) -> anyhow::Result<()> {
+        let _ = self.delete_logo(sponsor_uid).await; // ignore errors
+
+        let mut stream = self.logo_bucket.open_upload_stream(sponsor_uid.to_string(), None);
+        stream.write_all(file.as_ref()).await?;
+        stream.close().await?;
+
+        Ok(())
+    }
+
+    pub async fn delete_logo(&self, sponsor_uid: &bson::Uuid) -> anyhow::Result<()> {
+        let mut cursor = self.logo_bucket.find(doc! {"file_name": sponsor_uid.to_string()}, GridFsFindOptions::builder().limit(1).build()).await?;
+        let find = cursor.next().await.ok_or(anyhow!("logo not found"))??;
+
+        self.logo_bucket.delete(find.id).await?;
+
+        Ok(())
+    }
+
+    pub async fn get_logo(&self, sponsor_uid: &bson::Uuid) -> anyhow::Result<Option<impl tokio::io::AsyncRead>> {
+        let stream = match self.logo_bucket.open_download_stream_by_name(sponsor_uid.to_string(), None).await {
+            Ok(s) => s.compat(),
+            Err(e) => {
+                if e.to_string().contains("FileNotFound") {
+                    return Ok(None);
+                }
+
+                return Err(e.into());
+            }
+        };
+
+        Ok(Some(stream))
     }
 }
