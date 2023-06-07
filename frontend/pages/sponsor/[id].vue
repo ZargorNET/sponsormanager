@@ -210,7 +210,7 @@ function addFavour() {
         uid: createUUID(),
         completed: false,
         condition: "",
-        dueUntil: new Date().getMilliseconds(),
+        dueUntil: new Date().toISOString(),
         sponsorUid: sponsor.value.uid as string
     })
 }

@@ -18,9 +18,7 @@ import {ComputedRef} from "vue";
 import {SponsorFavour} from "~/utils/sponsor";
 
 const mainStore = useMainStore();
-
-const openFavours: ComputedRef<SponsorFavour[]> = computed(() =>
-    mainStore.sponsors.filter(s => s?.favours != undefined).map(s => s.favours.filter(f => !f.completed)).flat());
+const openFavours: ComputedRef<SponsorFavour[]> = computed(() => mainStore.getAllFavours().filter(favour => !favour.completed));
 
 onMounted(async () => {
     await mainStore.fetchAllSponsors();

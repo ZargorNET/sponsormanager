@@ -175,8 +175,8 @@ dependencies = [
  "serde",
  "serde_bytes",
  "serde_json",
-    "time 0.3.20",
-    "uuid",
+ "time 0.3.20",
+ "uuid",
 ]
 
 [[package]]
@@ -215,9 +215,9 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d38f2da7a0a2c4ccf0065be06397cc26a81f4e528be095826eee9d4adbb8c60f"
 dependencies = [
-    "byteorder",
-    "fnv",
-    "uuid",
+ "byteorder",
+ "fnv",
+ "uuid",
 ]
 
 [[package]]
@@ -819,8 +819,8 @@ version = "1.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bd070e393353796e801d209ad339e89596eb4c8d430d18ede6a1cced8fafbd99"
 dependencies = [
-    "autocfg",
-    "hashbrown",
+ "autocfg",
+ "hashbrown",
 ]
 
 [[package]]
@@ -829,7 +829,7 @@ version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f551f8c3a39f68f986517db0d1759de85881894fdc7db798bd2a9df9cb04b7fc"
 dependencies = [
-    "cfb",
+ "cfb",
 ]
 
 [[package]]
@@ -838,7 +838,7 @@ version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a5bbe824c507c5da5956355e86a746d82e0e1464f65d862cc5e71da70e94b2c"
 dependencies = [
-    "cfg-if",
+ "cfg-if",
 ]
 
 [[package]]
@@ -1214,8 +1214,8 @@ version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fac9e2da13b5eb447a6ce3d392f23a29d8694bff781bf03a16cd9ac8697593b"
 dependencies = [
-    "hermit-abi",
-    "libc",
+ "hermit-abi",
+ "libc",
 ]
 
 [[package]]
@@ -1270,11 +1270,11 @@ version = "0.9.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9069cbb9f99e3a5083476ccb29ceb1de18b9118cafa53e90c9551235de2b9521"
 dependencies = [
-    "cfg-if",
-    "libc",
-    "redox_syscall",
-    "smallvec",
-    "windows-sys 0.45.0",
+ "cfg-if",
+ "libc",
+ "redox_syscall",
+ "smallvec",
+ "windows-sys 0.45.0",
 ]
 
 [[package]]
@@ -1765,22 +1765,22 @@ checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
 name = "sponsormanager"
 version = "0.1.0"
 dependencies = [
-    "anyhow",
-    "async-trait",
-    "axum",
-    "chrono",
-    "futures",
-    "infer",
-    "meilisearch-sdk",
-    "mongodb",
-    "serde",
-    "serde_json",
-    "tokio",
-    "tokio-util",
-    "tower-http",
-    "tracing",
-    "tracing-subscriber",
-    "uuid",
+ "anyhow",
+ "async-trait",
+ "axum",
+ "chrono",
+ "futures",
+ "infer",
+ "meilisearch-sdk",
+ "mongodb",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

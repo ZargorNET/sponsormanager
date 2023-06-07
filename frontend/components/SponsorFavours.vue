@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div v-for="(favour, index) in favoursRef">
+        <div v-for="(favour, index) in favoursRef" :key="favour.uid">
             <n-card>
                 <div class="w-full">
                     <div class="flex w-full items-center">
@@ -103,6 +103,6 @@ function toggleDate(favour: SponsorFavour) {
 }
 
 function isOverdue(favour: SponsorFavour): boolean {
-    return favour.dueUntil <= new Date().setHours(0, 0, 0, 0);
+    return new Date(favour.dueUntil).getTime() <= new Date().setHours(0, 0, 0, 0);
 }
 </script>

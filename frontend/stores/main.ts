@@ -7,7 +7,14 @@ export const useMainStore = defineStore('main', () => {
     const sponsors: Ref<Sponsor[]> = ref([]);
     const settings: Ref<Settings> = ref({} as Settings);
 
+    let _lastFetchAllSponsor = new Date(0);
     async function fetchAllSponsors() {
+        const now = new Date();
+        if (_lastFetchAllSponsor.getTime() + 4000 > now.getTime())
+            return;
+        _lastFetchAllSponsor = now;
+
+        console.debug("fetching all sponsors...");
         const res = await getHttpClient().get("/get_all");
         sponsors.value = await res.data;
     }
