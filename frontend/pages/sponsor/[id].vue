@@ -82,9 +82,7 @@
                 </div>
             </n-card>
         </div>
-        {{ route.params.id }}
-        <br/>
-        {{ sponsor }}
+        <pre v-if="isDev">{{ sponsor }}</pre>
     </div>
 </template>
 
@@ -111,9 +109,11 @@ const sponsor: Ref<Sponsor> = ref({
     favoursCompleted: true,
     favours: []
 });
+const addFieldValue = ref();
 // will only be Some if a file has been chosen
 let newLogo: File | undefined = undefined;
-
+const isDev = computed(() => import.meta.env.DEV);
+let navigateAwayGuard: (() => void) | undefined = undefined;
 
 onBeforeMount(async () => {
     if (routeSponsorUid !== "create") {
@@ -157,6 +157,21 @@ async function editBtn() {
 
         edit.value = true;
         window.addEventListener("beforeunload", areYouSureToExit);
+        navigateAwayGuard = router.beforeResolve(_ => {
+            if (edit) {
+                getNotificationApi().warning({
+                    title: "You must save your changes before navigating away",
+                    duration: 4000
+                });
+                return false;
+            }
+            return true;
+        });
+        return;
+    }
+
+    if (sponsor.value.name === "New Sponsor") {
+        getNotificationApi().error({title: "Please specify a name", duration: 4000});
         return;
     }
 
@@ -169,19 +184,21 @@ async function editBtn() {
     newLogo = undefined;
     sponsor.value = newSponsor;
 
-    if (isNewSponsor)
-        await router.push(`/sponsor/${newSponsor.uid}`);
-
     edit.value = false;
     window.removeEventListener("beforeunload", areYouSureToExit);
+    if (navigateAwayGuard) {
+        navigateAwayGuard();
+        navigateAwayGuard = undefined;
+    }
     getNotificationApi().success({title: "Success!", duration: 4000});
+
+    if (isNewSponsor)
+        await router.push(`/sponsor/${newSponsor.uid}`);
 }
 
 onBeforeUnmount(() => {
     window.removeEventListener("beforeunload", areYouSureToExit);
 });
-
-const addFieldValue = ref();
 
 function addField() {
     dialog.create({

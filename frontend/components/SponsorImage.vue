@@ -1,7 +1,7 @@
 <template>
     <div class="h-full w-full flex items-center justify-center bg-blue-500 rounded relative">
         <img v-if="sponsor.imageUrl" :alt="`image of ${sponsor.name}`" :src="sponsorImage"
-             class="max-w-full max-h-full"/>
+             class="max-w-full max-h-full object-contain"/>
         <div v-else>
             <n-empty description="No logo" size="huge"/>
         </div>

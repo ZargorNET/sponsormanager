@@ -3,12 +3,10 @@
         <div class="w-1/2">
             <n-h1 class="text-center">Sponsors</n-h1>
             <SponsorOverviewGrid :sponsors="sponsors"/>
-            {{ sponsors }}
         </div>
         <div class="w-1/2">
             <n-h1 class="text-center">Favours</n-h1>
             <SponsorFavours :favours="favours" :edit="false" :fetch-sponsor="true"/>
-            {{ favours }}
         </div>
     </div>
 </template>

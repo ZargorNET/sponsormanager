@@ -42,7 +42,6 @@ window.$notification = notification;
 window.$loadingBar = loadingBar;
 
 onMounted(() => {
-    mainStore.fetchAllSponsors();
     mainStore.fetchSettings();
 });
 

@@ -8,5 +8,7 @@
 import SponsorOverviewGrid from "~/components/SponsorOverviewGrid.vue";
 
 const mainStore = useMainStore();
-
+onMounted(async () => {
+    await mainStore.fetchAllSponsors();
+});
 </script>
