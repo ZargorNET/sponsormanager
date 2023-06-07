@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use anyhow::anyhow;
 use axum::body::Bytes;
 use futures::{AsyncWriteExt, StreamExt};
 use mongodb::{bson, Collection, GridFsBucket};
@@ -89,9 +88,9 @@ impl MongoQueries {
 
     pub async fn delete_logo(&self, sponsor_uid: &bson::Uuid) -> anyhow::Result<()> {
         let mut cursor = self.logo_bucket.find(doc! {"file_name": sponsor_uid.to_string()}, GridFsFindOptions::builder().limit(1).build()).await?;
-        let find = cursor.next().await.ok_or(anyhow!("logo not found"))??;
+        let Some(find) = cursor.next().await else { return Ok(()); };
 
-        self.logo_bucket.delete(find.id).await?;
+        self.logo_bucket.delete(find?.id).await?;
 
         Ok(())
     }

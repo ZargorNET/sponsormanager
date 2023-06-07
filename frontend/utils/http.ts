@@ -26,7 +26,8 @@ export function getHttpClient(addErrorInterceptor: boolean = true): AxiosInstanc
 
         getNotificationApi().error({
             title: "Error sending request. Please try again.",
-            description: `${err.code} - ${JSON.stringify(err.response?.data)}`
+            description: `${err.message} - ${JSON.stringify(err.response?.data)}`,
+            duration: 6000
         })
     });
 

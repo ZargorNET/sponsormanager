@@ -129,7 +129,7 @@ onBeforeMount(async () => {
             return;
         }
 
-        sponsor.value = found;
+        sponsor.value = structuredClone(toRaw(found));
     } else {
         await editBtn();
     }
@@ -185,11 +185,7 @@ async function editBtn() {
     sponsor.value = newSponsor;
 
     edit.value = false;
-    window.removeEventListener("beforeunload", areYouSureToExit);
-    if (navigateAwayGuard) {
-        navigateAwayGuard();
-        navigateAwayGuard = undefined;
-    }
+    cleanUpAfterSave();
     getNotificationApi().success({title: "Success!", duration: 4000});
 
     if (isNewSponsor)
@@ -199,6 +195,14 @@ async function editBtn() {
 onBeforeUnmount(() => {
     window.removeEventListener("beforeunload", areYouSureToExit);
 });
+
+function cleanUpAfterSave() {
+    window.removeEventListener("beforeunload", areYouSureToExit);
+    if (navigateAwayGuard) {
+        navigateAwayGuard();
+        navigateAwayGuard = undefined;
+    }
+}
 
 function addField() {
     dialog.create({
@@ -246,6 +250,7 @@ function recalculateFavoursCompleted() {
 }
 
 async function deleteSponsor() {
+    cleanUpAfterSave();
     if (sponsor.value.uid !== undefined) {
         await mainStore.deleteSponsor(sponsor.value);
         getNotificationApi().success({title: "Sponsor deleted!", duration: 4000});

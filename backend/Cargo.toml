@@ -21,3 +21,5 @@ meilisearch-sdk = "0.23"
 tower-http = { version = "0.4", features = ["cors", "trace"] }
 tokio-util = { version = "0.7", features = ["compat"] }
 infer = "0.13"
+ldap3 = { version = "0.11", default-features = false, features = ["tls"] }
+jsonwebtoken = "8.3"
