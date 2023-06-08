@@ -20,6 +20,7 @@ import {Ref} from "vue";
 
 const searchTerm: Ref<String> = ref("");
 const router = useRouter();
+const route = useRoute();
 
 function onSearch() {
     if (searchTerm.value.length == 0)
@@ -27,4 +28,9 @@ function onSearch() {
 
     router.push(`/search/${searchTerm.value}`);
 }
+
+onMounted(() => {
+    if (route.path.startsWith("/search/"))
+        searchTerm.value = route.params.term as string;
+});
 </script>

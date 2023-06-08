@@ -1,13 +1,16 @@
+use std::process::exit;
 use std::sync::Arc;
 
 use axum::extract::DefaultBodyLimit;
 use axum::response::Response;
 use axum::Router;
-use axum::routing::{get, post};
+use axum::routing::{get, get_service, post};
+use serde::Deserialize;
 use tower_http::cors;
 use tower_http::cors::CorsLayer;
+use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
-use tracing::info;
+use tracing::{error, info};
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -26,6 +29,8 @@ mod meili_sync;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let _ = dotenvy::dotenv();
+
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
         .with(tracing_subscriber::filter::EnvFilter::builder()
@@ -34,12 +39,21 @@ async fn main() -> anyhow::Result<()> {
             .add_directive("ldap3=error".parse()?))
         .init();
 
+    info!("Fetching config...");
+    let config = match envy::from_env::<Config>() {
+        Ok(c) => c,
+        Err(e) => {
+            error!("error fetching config: {:?}", e);
+            exit(-1);
+        }
+    };
+
     info!("Initializing state...");
     let state = Arc::new(AppStateStruct {
-        meili: MeiliQueries::new("http://127.0.0.1:7700", "iO34H9ZObAWVobl8Q7krgbvNd-T2gweco-5sQlYW8h8").await?,
-        mongo: MongoQueries::new("mongodb://root:verysafepassword@127.0.0.1:27017").await?,
-        jwt: JwtInstance::new("very secret"),
-        ldap: LdapInstance::new("ldap://ldap.forumsys.com:389", "cn=read-only-admin,dc=example,dc=com", "password", "dc=example,dc=com"),
+        meili: MeiliQueries::new(&config.meili_uri, &config.meili_token).await?,
+        mongo: MongoQueries::new(&config.mongo_url).await?,
+        jwt: JwtInstance::new(&config.jwt_secret),
+        ldap: LdapInstance::new(&config.ldap_uri, &config.ldap_bind_cn, &config.ldap_bind_secret, &config.ldap_base_dn),
     });
 
 
@@ -58,10 +72,11 @@ async fn main() -> anyhow::Result<()> {
         .route("/settings/get", get(routes::settings::get))
         .route("/settings/update", post(routes::settings::update))
         .route("/login", post(routes::login))
-        .layer(CorsLayer::new().allow_origin(cors::Any).allow_headers(cors::Any).allow_methods(cors::Any))
-        .layer(TraceLayer::new_for_http())
         .layer(DefaultBodyLimit::max(16 * 1024 * 1024));
 
+    let static_files_service = get_service(ServeDir::new("dist/")
+        .append_index_html_on_directories(true)
+        .fallback(ServeFile::new("dist/index.html")));
 
     info!("Starting meili sync...");
     meili_sync::sync_meili(state.clone());
@@ -71,7 +86,11 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Starting webserver...");
     axum::Server::bind(&"0.0.0.0:8080".parse()?)
-        .serve(app
+        .serve(Router::new()
+            .fallback(static_files_service)
+            .nest("/api", app)
+            .layer(CorsLayer::new().allow_origin(cors::Any).allow_headers(cors::Any).allow_methods(cors::Any))
+            .layer(TraceLayer::new_for_http())
             .with_state(state)
             .into_make_service())
         .await?;
@@ -87,4 +106,16 @@ pub struct AppStateStruct {
     mongo: MongoQueries,
     jwt: JwtInstance,
     ldap: LdapInstance,
+}
+
+#[derive(Deserialize, Debug)]
+struct Config {
+    meili_uri: String,
+    meili_token: String,
+    mongo_url: String,
+    jwt_secret: String,
+    ldap_uri: String,
+    ldap_bind_cn: String,
+    ldap_bind_secret: String,
+    ldap_base_dn: String,
 }

@@ -65,7 +65,7 @@ impl JwtInstance {
 }
 
 pub struct LdapInstance {
-    pub url: String,
+    pub uri: String,
     pub bind_cn: String,
     pub password: String,
     pub base_dn: String,
@@ -79,9 +79,9 @@ pub struct LdapSearchResult {
 }
 
 impl LdapInstance {
-    pub fn new(url: &str, bind_cn: &str, password: &str, base_dn: &str) -> Self {
+    pub fn new(uri: &str, bind_cn: &str, password: &str, base_dn: &str) -> Self {
         Self {
-            url: url.to_string(),
+            uri: uri.to_string(),
             bind_cn: bind_cn.to_string(),
             password: password.to_string(),
             base_dn: base_dn.to_string(),
@@ -89,20 +89,22 @@ impl LdapInstance {
     }
 
     pub async fn search_user(&self, mail: &str) -> anyhow::Result<Option<LdapSearchResult>> {
-        let (conn, mut ldap) = LdapConnAsync::new(&self.url).await?;
+        let (conn, mut ldap) = LdapConnAsync::new(&self.uri).await?;
         ldap3::drive!(conn);
         ldap.simple_bind(&self.bind_cn, &self.password).await?.success()?;
 
-        let Some(search) = ldap.search(&self.base_dn, Scope::Subtree,
-                                       &format!("(mail={})", mail), vec!["dn", "cn"])
+        let search = ldap.search(&self.base_dn, Scope::Subtree,
+                                 &format!("(mail={})", mail), vec!["dn", "cn"])
             .await?
             .success()?
             .0
             .into_iter()
             .map(SearchEntry::construct)
-            .next() else { return Ok(None); };
+            .next();
 
         ldap.unbind().await?;
+
+        let Some(search) = search  else { return Ok(None); };
 
         Ok(Some(LdapSearchResult {
             dn: search.dn.to_string(),
@@ -112,7 +114,7 @@ impl LdapInstance {
     }
 
     pub async fn check_password(&self, ldap_search: &LdapSearchResult, password: &str) -> anyhow::Result<bool> {
-        let (conn, mut ldap) = LdapConnAsync::new(&self.url).await?;
+        let (conn, mut ldap) = LdapConnAsync::new(&self.uri).await?;
         ldap3::drive!(conn);
 
         let is_authenticated = ldap.simple_bind(&ldap_search.dn, password).await?.success().is_ok();
@@ -123,7 +125,7 @@ impl LdapInstance {
 
 
     pub async fn check_ldap_con(&self) -> anyhow::Result<()> {
-        let (conn, mut ldap) = LdapConnAsync::new(&self.url).await?;
+        let (conn, mut ldap) = LdapConnAsync::new(&self.uri).await?;
         ldap3::drive!(conn);
         ldap.simple_bind(&self.bind_cn, &self.password).await?.success()?;
         ldap.unbind().await?;

@@ -2,14 +2,15 @@ FROM node:16-alpine as frontend
 WORKDIR /frontend
 
 COPY /frontend .
-RUN npm i
-RUN npm run generate
+RUN npm i  \
+    && npm run generate \
+    && rm -rf node_modules/
 
 
 # Rust Backend
 # Using cargo-chef to cache dependencies and increase development time
 
-FROM rust:1.69 AS rust_base
+FROM rust:1.70 AS rust_base
 ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
 WORKDIR /app
 RUN cargo install cargo-chef --locked
@@ -27,7 +28,7 @@ RUN cargo build --release
 
 FROM debian:bullseye-slim AS runtime
 WORKDIR app
-COPY --from=builder /app/target/release/sponsormanager /usr/local/bin
+COPY --from=builder /app/target/release/sponsormanager /app/
 COPY --from=frontend /frontend/dist dist/
 
-ENTRYPOINT ["/usr/local/bin/sponsormanager"]
+ENTRYPOINT /app/sponsormanager

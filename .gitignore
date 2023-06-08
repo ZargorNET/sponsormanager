@@ -1,9 +1,3 @@
-frontend/node_modules
-*.log*
-frontend/.nuxt
-frontend/.nitro
-.cache
-.output
+.idea/
 .env
-dist
-.DS_Store
+/data/

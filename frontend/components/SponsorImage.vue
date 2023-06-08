@@ -1,6 +1,7 @@
 <template>
     <div class="h-full w-full flex items-center justify-center bg-blue-500 rounded relative">
-        <img v-if="sponsor.imageUrl" :alt="`image of ${sponsor.name}`" :src="sponsorImage"
+        <img v-if="sponsor.imageUrl && !isError" :alt="`image of ${sponsor.name}`" :src="sponsorImage"
+             @error="isError = true"
              class="max-w-full max-h-full object-contain"/>
         <div v-else>
             <n-empty description="No logo" size="huge"/>
@@ -28,6 +29,7 @@ const props = defineProps<{
     edit?: boolean
 }>();
 const sponsorImage = computed(() => (appConfig.apiEndpoint + props.sponsor.imageUrl).replaceAll(/(?<!:)\/+/gm, "/"));
+const isError = ref(false);
 
 fileDialog.onChange(files => {
     if (files == null || files.length == 0)

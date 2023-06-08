@@ -18,8 +18,10 @@ async-trait = "0.1"
 futures = "0.3"
 mongodb = { version = "2.5", features = ["bson-uuid-1"] }
 meilisearch-sdk = "0.23"
-tower-http = { version = "0.4", features = ["cors", "trace"] }
+tower-http = { version = "0.4", features = ["cors", "trace", "fs"] }
 tokio-util = { version = "0.7", features = ["compat"] }
 infer = "0.13"
 ldap3 = { version = "0.11", default-features = false, features = ["tls"] }
 jsonwebtoken = "8.3"
+envy = "0.4.2"
+dotenvy = "0.15"

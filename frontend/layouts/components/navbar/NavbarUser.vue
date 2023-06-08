@@ -16,8 +16,7 @@
 <script setup lang="ts">
 const router = useRouter();
 const authStore = useAuthStore();
-const username = computed(() => authStore.user?.name ?? "");
-const loadingBar = useLoadingBar();
+const username = computed(() => authStore.user?.sub ?? "");
 
 const loggedInDropdownOptions = ref([
 /*    {
@@ -40,9 +39,9 @@ const loggedInDropdownOptions = ref([
 ]);
 
 async function logout() {
-    loadingBar.start();
-    await authStore.logout();
-    loadingBar.finish();
+    authStore.logout();
+    getNotificationApi().success({title: "Successfully logged out!", duration: 4000});
+    await router.push("/login");
 }
 
 </script>

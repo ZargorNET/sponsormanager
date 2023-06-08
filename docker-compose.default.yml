@@ -1,0 +1,33 @@
+version: "3.1"
+services:
+  mongodb:
+    image: mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - ./data/mongo:/data/db
+  meilisearch:
+    image: getmeili/meilisearch:v1.1
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: "${MEILI_TOKEN}"
+    volumes:
+      - ./data/meili:/meili_data
+  sponsormanager:
+    image: zargornet/sponsormanager:latest
+    build:
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      MEILI_URI: ${MEILI_SCHEMA}://meilisearch:7700
+      MONGO_URL: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb:27017
+      MEILI_TOKEN: ${MEILI_TOKEN}
+      JWT_SECRET: ${JWT_SECRET}
+      LDAP_URI: ${LDAP_URI}
+      LDAP_BIND_CN: ${LDAP_BIND_CN}
+      LDAP_BIND_SECRET: ${LDAP_BIND_SECRET}
+      LDAP_BASE_DN: ${LDAP_BASE_DN}
+    ports:
+      - ${BIND}:8080

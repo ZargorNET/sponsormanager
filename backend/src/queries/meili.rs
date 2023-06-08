@@ -13,8 +13,8 @@ pub struct MeiliQueries {
 }
 
 impl MeiliQueries {
-    pub async fn new(url: &str, token: &str) -> anyhow::Result<Self> {
-        let client = meilisearch_sdk::Client::new(url, Some(token));
+    pub async fn new(uri: &str, token: &str) -> anyhow::Result<Self> {
+        let client = meilisearch_sdk::Client::new(uri, Some(token));
 
         client.create_index(INDEX_SPONSORS, Some("id")).await?;
         client.create_index(INDEX_FAVOURS, Some("id")).await?;

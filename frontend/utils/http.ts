@@ -1,28 +1,35 @@
 import axios, {AxiosError, AxiosInstance} from "axios";
 import {getLoadingBar, getNotificationApi} from "~/utils/misc";
 
-export function getHttpClient(addErrorInterceptor: boolean = true): AxiosInstance {
+export function getHttpClient(addErrorInterceptor: boolean = true, loadingBar: boolean = true): AxiosInstance {
     // @ts-ignore
     const {apiEndpoint} = useAppConfig();
+    const authStore = useAuthStore();
 
     const instance = axios.create({
         baseURL: apiEndpoint,
+        headers: {
+            Authorization: `Bearer ${authStore.sessionCookie}`
+        }
     });
 
     instance.interceptors.request.use((config) => {
-        getLoadingBar().start();
+        if (loadingBar)
+            getLoadingBar().start();
         return config;
     });
 
     instance.interceptors.response.use((res) => {
-        getLoadingBar().finish();
+        if (loadingBar)
+            getLoadingBar().finish();
         return res;
     }, (err: AxiosError) => {
+        if (loadingBar)
+            getLoadingBar().error();
+        console.error(`Error while sending request`, err);
+
         if (!addErrorInterceptor)
             return;
-
-        getLoadingBar().error();
-        console.error(`Error while sending request`, err);
 
         getNotificationApi().error({
             title: "Error sending request. Please try again.",

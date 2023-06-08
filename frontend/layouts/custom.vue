@@ -1,7 +1,7 @@
 <template>
     <div class="bg-black w-screen h-screen text-white">
         <n-layout content-style="display: flex; flex-direction: column; width: 100vw; height: 100vh;">
-            <n-layout-header>
+            <n-layout-header v-if="authStore.user !== null">
                 <Navbar/>
             </n-layout-header>
             <n-layout-content>
@@ -31,19 +31,14 @@
 <script setup>
 import Navbar from "~/layouts/components/navbar/Navbar.vue";
 import Footer from "~/layouts/components/Footer.vue";
-import {useMainStore} from "~/stores/main";
 
-const mainStore = useMainStore();
+const authStore = useAuthStore();
 const load = useLoadingBar()
 const notification = useNotification();
 const loadingBar = useLoadingBar();
 
 window.$notification = notification;
 window.$loadingBar = loadingBar;
-
-onMounted(() => {
-    mainStore.fetchSettings();
-});
 
 // TODO: Remove when https://github.com/vuejs/core/issues/5513 fixed
 const key = ref(0)
