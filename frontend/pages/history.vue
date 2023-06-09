@@ -51,6 +51,7 @@ const paginationReactive = reactive({
   page: 1,
   pageCount: 1,
   pageSize: 100,
+  //@ts-ignore
   prefix({itemCount}) {
     return `Total is ${itemCount}.`
   }
@@ -73,6 +74,7 @@ async function handlePageChange(page: number) {
   let {changes, total} = await res.data;
 
   paginationReactive.pageCount = Math.ceil(total / 100);
+  //@ts-ignore
   paginationReactive.itemCount = total;
   paginationReactive.page = page;
 

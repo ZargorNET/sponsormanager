@@ -1,5 +1,4 @@
-# Todo
+# Sponsormanager
 
-Backend:
+Made for [German Formula Student Team greenBEAR](https://greenbear.berlin).
 
-- [ ] User auth
