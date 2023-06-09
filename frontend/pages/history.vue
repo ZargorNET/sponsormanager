@@ -76,9 +76,18 @@ async function handlePageChange(page: number) {
   paginationReactive.itemCount = total;
   paginationReactive.page = page;
 
+  const intl = Intl.DateTimeFormat("de", {
+    day: "numeric",
+    weekday: "short",
+    month: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric"
+  })
   changes = changes.map((c: any) => {
     return {
-      "time": new Date(c.when).toDateString(),
+      "time": intl.format(new Date(c.when)),
       "who": c.who,
       "what": JSON.stringify(c.what, null, 2),
       "type": Object.keys(c.what)[0]
