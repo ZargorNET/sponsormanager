@@ -4,10 +4,10 @@ use axum::body::Bytes;
 use futures::{AsyncWriteExt, StreamExt};
 use mongodb::{bson, Collection, GridFsBucket};
 use mongodb::bson::doc;
-use mongodb::options::{ClientOptions, GridFsBucketOptions, GridFsFindOptions, ReplaceOptions};
+use mongodb::options::{ClientOptions, FindOptions, GridFsBucketOptions, GridFsFindOptions, ReplaceOptions};
 use tokio_util::compat::FuturesAsyncReadCompatExt;
 
-use crate::models::mongo::{Settings, Sponsor};
+use crate::models::mongo::{Change, Settings, Sponsor};
 
 const DB_NAME: &str = "sponsormanager";
 
@@ -16,6 +16,7 @@ pub struct MongoQueries {
     pub db: mongodb::Database,
     pub sponsor_collection: Collection<Sponsor>,
     pub settings_collection: Collection<Settings>,
+    pub change_collection: Collection<Change>,
     pub logo_bucket: GridFsBucket,
 }
 
@@ -29,6 +30,7 @@ impl MongoQueries {
         let db = client.database(DB_NAME);
         let sponsor_collection = db.collection("sponsors");
         let settings_collection = db.collection("settings");
+        let change_collection = db.collection("changes");
         let logo_bucket = db.gridfs_bucket(GridFsBucketOptions::builder().bucket_name(Some("logos".to_string())).build());
 
         client
@@ -36,7 +38,7 @@ impl MongoQueries {
             .run_command(doc! {"ping": 1}, None)
             .await?;
 
-        Ok(Self { client, db, sponsor_collection, settings_collection, logo_bucket })
+        Ok(Self { client, db, sponsor_collection, settings_collection, change_collection, logo_bucket })
     }
 
     pub async fn insert(&self, sponsor: &Sponsor) -> anyhow::Result<()> {
@@ -108,5 +110,23 @@ impl MongoQueries {
         };
 
         Ok(Some(stream))
+    }
+
+    pub async fn add_change(&self, change: &Change) -> anyhow::Result<()> {
+        self.change_collection.insert_one(change, None).await?;
+
+        Ok(())
+    }
+
+    pub async fn get_changes(&self, offset: u64) -> anyhow::Result<(Vec<Change>, u64)> {
+        let mut cursor = self.change_collection.find(doc! {}, FindOptions::builder().limit(100).skip(Some(offset)).sort(doc! {"when": -1}).build()).await?;
+
+        let mut changes = Vec::new();
+        while let Some(change) = cursor.next().await {
+            changes.push(change?);
+        }
+
+        let total = self.change_collection.count_documents(doc! {}, None).await?;
+        Ok((changes, total))
     }
 }

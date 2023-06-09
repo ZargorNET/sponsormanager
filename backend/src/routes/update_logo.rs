@@ -8,9 +8,10 @@ use serde_json::json;
 use crate::{AppResult, AppState};
 use crate::auth::User;
 use crate::error::AppError;
+use crate::models::mongo::{Change, ChangeType};
 use crate::models::rest::RestSponsor;
 
-pub async fn update_logo(state: State<AppState>, _user: User, mut multipart: Multipart) -> AppResult {
+pub async fn update_logo(state: State<AppState>, user: User, mut multipart: Multipart) -> AppResult {
     let mut sponsor_uid = None;
     let mut logo_data = None;
 
@@ -39,11 +40,13 @@ pub async fn update_logo(state: State<AppState>, _user: User, mut multipart: Mul
     }
 
     let sponsor_uid = uuid::Uuid::from_str(&sponsor_uid.unwrap())?;
-
     let mongo_uid = sponsor_uid.into();
-    state.mongo.upload_logo(&mongo_uid, logo_data).await?;
 
     let Some(mut sponsor) = state.mongo.get(mongo_uid).await? else { return Err(AppError::new(400, "sponsor not found??")); };
+
+    state.mongo.add_change(&Change::new(user.email, ChangeType::ChangeLogo(sponsor.clone()))).await?;
+
+    state.mongo.upload_logo(&mongo_uid, logo_data).await?;
     sponsor.image_url = Some(format!("/get_logo/{}", &sponsor_uid.to_string()));
     state.mongo.update(&mongo_uid, &sponsor).await?;
 

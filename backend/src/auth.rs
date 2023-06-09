@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use anyhow::anyhow;
 use async_trait::async_trait;
 use axum::extract::FromRequestParts;
@@ -16,7 +18,16 @@ pub struct User {
     pub email: String,
     pub dn: String,
     pub exp: usize,
+    pub role: Role,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum Role {
+    USER,
+    ADMIN,
+}
+
+pub struct RequireAdmin(pub User);
 
 #[async_trait]
 impl FromRequestParts<AppState> for User {
@@ -37,6 +48,29 @@ impl FromRequestParts<AppState> for User {
     }
 }
 
+#[async_trait]
+impl FromRequestParts<AppState> for RequireAdmin {
+    type Rejection = AppError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
+        let user = User::from_request_parts(parts, state).await?;
+
+        if !matches!(user.role, Role::ADMIN) {
+            return Err(AppError::new(403, "forbidden"));
+        }
+
+        Ok(RequireAdmin(user))
+    }
+}
+
+impl Deref for RequireAdmin {
+    type Target = User;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 pub struct JwtInstance {
     encoding_key: EncodingKey,
     decoding_key: DecodingKey,
@@ -50,10 +84,9 @@ impl JwtInstance {
             encoding_key: EncodingKey::from_secret(secret.as_ref()),
             decoding_key: DecodingKey::from_secret(secret.as_ref()),
             header: Header::new(Algorithm::HS512),
-            validation: Validation::new(Algorithm::HS512),
+            validation: Validation::new(Algorithm::HS512)
         }
     }
-
 
     pub fn create_jwt(&self, user: &User) -> anyhow::Result<String> {
         Ok(jsonwebtoken::encode(&self.header, &user, &self.encoding_key)?)
@@ -140,6 +173,7 @@ impl From<LdapSearchResult> for User {
             email: value.email,
             dn: value.dn,
             exp: (chrono::Local::now() + Duration::days(1)).timestamp() as usize,
+            role: Role::USER
         }
     }
 }

@@ -37,3 +37,30 @@ pub struct Settings {
     #[serde(rename = "mandatoryFields")]
     pub mandatory_fields: HashSet<String>,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Change {
+    pub who: String,
+    pub when: chrono::DateTime<Utc>,
+    pub what: ChangeType,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum ChangeType {
+    AddSponsor(Sponsor),
+    DeleteSponsor(Sponsor),
+    ChangeSponsor(Sponsor),
+    ChangedSettings(Settings),
+    ChangeLogo(Sponsor),
+}
+
+
+impl Change {
+    pub fn new(who: impl Into<String>, what: ChangeType) -> Self {
+        Self {
+            who: who.into(),
+            when: Utc::now(),
+            what,
+        }
+    }
+}

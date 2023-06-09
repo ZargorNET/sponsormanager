@@ -8,6 +8,8 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     volumes:
       - ./data/mongo:/data/db
+    ports:
+      - 127.0.0.1:27017:27017
   meilisearch:
     image: getmeili/meilisearch:v1.1
     restart: unless-stopped
@@ -15,6 +17,8 @@ services:
       MEILI_MASTER_KEY: "${MEILI_TOKEN}"
     volumes:
       - ./data/meili:/meili_data
+    ports:
+      - 127.0.0.1:7700:7700
   sponsormanager:
     image: zargornet/sponsormanager:latest
     build:

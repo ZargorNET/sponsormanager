@@ -24,6 +24,7 @@ pub mod auth;
 pub mod error;
 pub mod models;
 pub mod queries;
+pub mod misc;
 mod routes;
 mod meili_sync;
 
@@ -72,6 +73,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/settings/get", get(routes::settings::get))
         .route("/settings/update", post(routes::settings::update))
         .route("/login", post(routes::login))
+        .route("/changes/:offset", get(routes::changes))
         .layer(DefaultBodyLimit::max(16 * 1024 * 1024));
 
     let static_files_service = get_service(ServeDir::new("dist/")

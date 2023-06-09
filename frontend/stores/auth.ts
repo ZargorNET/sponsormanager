@@ -29,8 +29,12 @@ export const useAuthStore = defineStore('user', () => {
         sessionCookie.value = null;
     }
 
+    function isAdmin(): boolean {
+        return user.value?.role === "ADMIN";
+    }
 
-    return {user, fetchUser, login, logout, sessionCookie};
+
+    return {user, fetchUser, login, logout, isAdmin, sessionCookie};
 });
 
 export interface Auth {
@@ -38,6 +42,7 @@ export interface Auth {
     email: String,
     exp: number,
     dn: String,
+    role: "USER" | "ADMIN"
 }
 
 if (import.meta.hot) {

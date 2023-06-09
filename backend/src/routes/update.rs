@@ -3,13 +3,14 @@ use axum::Json;
 use axum::response::IntoResponse;
 use uuid::Uuid;
 
-use crate::{AppResult, AppState};
+use crate::{AppResult, AppState, misc};
 use crate::auth::User;
+use crate::error::AppError;
 use crate::models::meili::MeiliSponsorFavour;
-use crate::models::mongo::{Sponsor, SponsorFavour, SponsorField};
+use crate::models::mongo::{Change, ChangeType, Sponsor, SponsorFavour, SponsorField};
 use crate::models::rest::RestSponsor;
 
-pub async fn update(state: State<AppState>, _user: User, payload: Json<RestSponsor>) -> AppResult {
+pub async fn update(state: State<AppState>, user: User, payload: Json<RestSponsor>) -> AppResult {
     let mut payload = payload.0;
 
     payload.favours.iter_mut().
@@ -33,6 +34,12 @@ pub async fn update(state: State<AppState>, _user: User, payload: Json<RestSpons
             due_until: favour.due_until,
         }).collect(),
     };
+
+    if let Err(e) = misc::assert_sponsor(&mongo_sponsor) {
+        return Err(AppError::new(400, e.to_string()));
+    }
+
+    state.mongo.add_change(&Change::new(user.email, ChangeType::ChangeSponsor(mongo_sponsor.clone()))).await?;
 
     state.mongo.update(&mongo_sponsor.uid, &mongo_sponsor).await?;
 
