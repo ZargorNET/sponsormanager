@@ -1,3 +1,3 @@
 export interface Settings {
-    mandatoryFields: string[];
+  mandatoryFields: string[];
 }

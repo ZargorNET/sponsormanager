@@ -1,9 +1,7 @@
 <template>
-    <div class="w-full h-full">
-        <SponsorOverview/>
-    </div>
+  <div class="w-full h-full">
+    <SponsorOverview />
+  </div>
 </template>
 
-<script setup lang="ts">
-
-</script>
+<script setup lang="ts"></script>
