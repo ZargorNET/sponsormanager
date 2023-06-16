@@ -84,7 +84,7 @@ impl JwtInstance {
             encoding_key: EncodingKey::from_secret(secret.as_ref()),
             decoding_key: DecodingKey::from_secret(secret.as_ref()),
             header: Header::new(Algorithm::HS512),
-            validation: Validation::new(Algorithm::HS512)
+            validation: Validation::new(Algorithm::HS512),
         }
     }
 
@@ -168,12 +168,15 @@ impl LdapInstance {
 
 impl From<LdapSearchResult> for User {
     fn from(value: LdapSearchResult) -> Self {
+        // TODO: Real role integration
+        let role = if value.email == "hackers@zrgr.pw" { Role::ADMIN } else { Role::USER };
+
         Self {
             sub: value.cn,
             email: value.email,
             dn: value.dn,
             exp: (chrono::Local::now() + Duration::days(1)).timestamp() as usize,
-            role: Role::USER
+            role,
         }
     }
 }
