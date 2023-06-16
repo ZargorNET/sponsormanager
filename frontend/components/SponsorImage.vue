@@ -1,9 +1,10 @@
 <template>
   <div
-    class="h-full w-full flex items-center justify-center bg-blue-500 rounded relative"
+    class="h-full w-full flex items-center justify-center rounded relative"
+    :class="hasLogo() ? 'bg-white' : 'bg-blue-500'"
   >
     <img
-      v-if="sponsor.imageUrl && !isError"
+      v-if="hasLogo()"
       :alt="`image of ${sponsor.name}`"
       :src="sponsorImage"
       @error="isError = true"
@@ -56,5 +57,9 @@ function changeLogo() {
     multiple: false,
     accept: "image/png,image/jpeg",
   });
+}
+
+function hasLogo(): boolean {
+  return props.sponsor.imageUrl !== undefined && !isError.value;
 }
 </script>
