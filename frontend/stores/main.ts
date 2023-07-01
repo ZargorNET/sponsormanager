@@ -55,7 +55,7 @@ export const useMainStore = defineStore("main", () => {
       form.set("sponsor_uid", data.uid!);
       form.set("data", logo);
 
-      const res = await getHttpClient().post("/update_logo", form);
+      const res = await getHttpClient().post("/upload_logo", form);
       data = (await res.data) as Sponsor;
       data.imageUrl = data.imageUrl + "?t=" + Math.random() * 100; // force refresh
     }
@@ -68,7 +68,6 @@ export const useMainStore = defineStore("main", () => {
     await getHttpClient().post("/delete", { uid: sponsor.uid });
     sponsors.value = sponsors.value.filter((s) => s.uid !== sponsor.uid);
   }
-
   function _replaceSponsor(sponsor: Sponsor) {
     sponsors.value = sponsors.value.filter((s) => s.uid !== sponsor.uid);
     sponsors.value.push(sponsor);

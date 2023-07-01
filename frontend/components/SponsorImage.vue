@@ -14,12 +14,20 @@
       <n-empty description="No logo" size="huge" />
     </div>
     <div
-      class="absolute bg-black opacity-80 w-full h-full flex justify-center items-center hover:opacity-90 transition-opacity cursor-pointer"
+      class="absolute bg-black opacity-80 w-full h-full flex flex-col justify-center items-center hover:opacity-90 transition-opacity cursor-pointer"
       v-if="edit"
       @click="changeLogo()"
     >
       <div class="mt-10">
         <n-h2>Click here to change</n-h2>
+      </div>
+
+      <div
+        class="z-10 absolute bottom-2"
+        @click="$event.stopPropagation()"
+        v-if="hasLogo()"
+      >
+        <n-button @click="emits('deleteLogo')">Delete</n-button>
       </div>
     </div>
   </div>
@@ -32,6 +40,7 @@ const fileDialog = useFileDialog();
 const appConfig = useAppConfig();
 const emits = defineEmits<{
   (e: "changeLogo", file: File): void;
+  (e: "deleteLogo"): void;
 }>();
 const props = defineProps<{
   sponsor: Sponsor;

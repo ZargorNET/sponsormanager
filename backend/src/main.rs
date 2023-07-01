@@ -69,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/get_all", get(routes::get_all))
         .route("/get_logo/:sponsor_uid", get(routes::get_logo))
         .route("/update", post(routes::update))
-        .route("/update_logo", post(routes::update_logo))
+        .route("/upload_logo", post(routes::upload_logo))
         .route("/settings/get", get(routes::settings::get))
         .route("/settings/update", post(routes::settings::update))
         .route("/login", post(routes::login))

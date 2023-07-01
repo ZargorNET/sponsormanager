@@ -2,18 +2,14 @@
   <div>
     <div>
       <n-card>
-        <div class="absolute top-8 right-8 z-10">
+        <div class="absolute top-8 right-8 z-10" v-if="!edit">
           <n-tooltip>
             <template #trigger>
               <div class="text-3xl cursor-pointer rounded" @click="editBtn()">
-                <Icon
-                  :name="
-                    !edit ? 'material-symbols:edit' : 'material-symbols:save'
-                  "
-                />
+                <Icon name="material-symbols:edit" />
               </div>
             </template>
-            {{ edit ? "Save" : "Edit" }}
+            Edit
           </n-tooltip>
         </div>
         <div class="flex">
@@ -23,6 +19,7 @@
                 :sponsor="sponsor"
                 :edit="edit"
                 @change-logo="changeLogo"
+                @delete-logo="deleteLogo"
               />
             </div>
             <p class="text-center text-3xl text-bold mt-2">
@@ -50,9 +47,12 @@
                 }}</span
               >
             </div>
-            <div class="flex justify-center" v-if="edit">
-              <n-button size="large" type="error" @click="deleteSponsor()"
-                >Delete Sponsor
+            <div class="flex flex-col justify-center gap-2" v-if="edit">
+              <n-button size="large" type="success" @click="editBtn()">
+                Save Sponsor
+              </n-button>
+              <n-button size="large" type="error" @click="deleteSponsor()">
+                Delete Sponsor
               </n-button>
             </div>
           </div>
@@ -292,6 +292,11 @@ function recalculateFavoursCompleted() {
 }
 
 async function deleteSponsor() {
+  const sure = window.confirm(
+    `Are you sure to delete Sponsor "${sponsor.value.name}"?`
+  );
+  if (!sure) return;
+
   cleanUpAfterSave();
   if (sponsor.value.uid !== undefined) {
     await mainStore.deleteSponsor(sponsor.value);
@@ -303,5 +308,9 @@ async function deleteSponsor() {
 
 function changeLogo(file: File) {
   newLogo = file;
+}
+
+function deleteLogo() {
+  sponsor.value.imageUrl = undefined;
 }
 </script>

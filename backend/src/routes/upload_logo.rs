@@ -11,7 +11,7 @@ use crate::error::AppError;
 use crate::models::mongo::{Change, ChangeType};
 use crate::models::rest::RestSponsor;
 
-pub async fn update_logo(state: State<AppState>, user: User, mut multipart: Multipart) -> AppResult {
+pub async fn upload_logo(state: State<AppState>, user: User, mut multipart: Multipart) -> AppResult {
     let mut sponsor_uid = None;
     let mut logo_data = None;
 

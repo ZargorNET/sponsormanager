@@ -42,6 +42,9 @@ pub async fn update(state: State<AppState>, user: User, payload: Json<RestSponso
     state.mongo.add_change(&Change::new(user.email, ChangeType::ChangeSponsor(mongo_sponsor.clone()))).await?;
 
     state.mongo.update(&mongo_sponsor.uid, &mongo_sponsor).await?;
+    if mongo_sponsor.image_url.is_none() {
+        let _ = state.mongo.delete_logo(&mongo_sponsor.uid).await; // ignore errors
+    }
 
     state.meili.insert_sponsor(&mongo_sponsor.clone().into()).await?;
     state.meili.insert_favours(
