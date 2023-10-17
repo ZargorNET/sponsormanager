@@ -1,4 +1,5 @@
 use std::ops::Deref;
+use std::sync::Arc;
 
 use anyhow::anyhow;
 use async_trait::async_trait;
@@ -6,11 +7,16 @@ use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use chrono::Duration;
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation};
-use ldap3::{LdapConnAsync, Scope, SearchEntry};
+use openidconnect::{AuthorizationCode, ClientId, ClientSecret, CsrfToken, EmptyAdditionalClaims, IdTokenClaims, IssuerUrl, Nonce, RedirectUrl, Scope};
+use openidconnect::core::{CoreAuthenticationFlow, CoreClient, CoreGenderClaim, CoreProviderMetadata};
+use retainer::{Cache, CacheExpiration};
 use serde::{Deserialize, Serialize};
+use tokio::select;
+use tokio_util::sync::CancellationToken;
 
 use crate::AppState;
 use crate::error::AppError;
+use crate::queries::mongo::MongoQueries;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
@@ -21,7 +27,7 @@ pub struct User {
     pub role: Role,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum Role {
     USER,
     ADMIN,
@@ -97,86 +103,109 @@ impl JwtInstance {
     }
 }
 
-pub struct LdapInstance {
-    pub uri: String,
-    pub bind_cn: String,
-    pub password: String,
-    pub base_dn: String,
+pub struct OpenIdInstance {
+    client: CoreClient,
+    sessions: Arc<Cache<String, String>>,
+    cancel_token: CancellationToken,
 }
 
-#[derive(Debug, Clone)]
-pub struct LdapSearchResult {
-    pub dn: String,
-    pub cn: String,
-    pub email: String,
-}
+pub type TokenClaims = IdTokenClaims<EmptyAdditionalClaims, CoreGenderClaim>;
 
-impl LdapInstance {
-    pub fn new(uri: &str, bind_cn: &str, password: &str, base_dn: &str) -> Self {
-        Self {
-            uri: uri.to_string(),
-            bind_cn: bind_cn.to_string(),
-            password: password.to_string(),
-            base_dn: base_dn.to_string(),
+impl OpenIdInstance {
+    pub async fn new<S: Into<String>>(client_id: S, client_secret: S, issuer_url: S, hostname: S) -> anyhow::Result<Self> {
+        let issuer_url = IssuerUrl::new(issuer_url.into())?;
+        let metadata = CoreProviderMetadata::discover_async(issuer_url, openidconnect::reqwest::async_http_client).await?;
+
+        let client = CoreClient::from_provider_metadata(metadata, ClientId::new(client_id.into()), Some(ClientSecret::new(client_secret.into())))
+            .set_redirect_uri(RedirectUrl::new(hostname.into() + "/api/login/code")?);
+
+        let cache = Arc::new(Cache::new());
+        let cancel_token = CancellationToken::new();
+
+        let cloned_cache = cache.clone();
+        let cloned_cancel_token = cancel_token.clone();
+        tokio::spawn(async move {
+            select! {
+               _ = cloned_cancel_token.cancelled() => {
+
+               }
+               _ = cloned_cache.monitor(1, 0.25, Duration::seconds(10).to_std().unwrap()) => {
+
+               }
+           }
+        });
+
+        Ok(
+            Self {
+                client,
+                sessions: cache,
+                cancel_token,
+            }
+        )
+    }
+
+    pub async fn create_auth_url(&self) -> String {
+        let (url, csrf, nonce) = self.client.authorize_url(
+            CoreAuthenticationFlow::AuthorizationCode,
+            CsrfToken::new_random,
+            Nonce::new_random,
+        )
+            .add_scope(Scope::new("email".to_string()))
+            .add_scope(Scope::new("profile".to_string()))
+            .url();
+
+        self.sessions.insert(csrf.secret().clone(), nonce.secret().clone(), CacheExpiration::from(60000)).await;
+
+        url.to_string()
+    }
+
+    pub async fn fetch_token(&self, code: String, state: String) -> anyhow::Result<TokenClaims> {
+        let nonce = self.sessions.get(&state).await;
+
+        if nonce.is_none() {
+            return Err(anyhow!("invalid state"));
         }
+
+        let nonce = nonce.unwrap().clone();
+
+        let res = self.client.exchange_code(AuthorizationCode::new(code))
+            .request_async(openidconnect::reqwest::async_http_client).await
+            .map_err(|e| anyhow!("invalid exchange code: {:?}", e))?;
+
+        let token_verifier = self.client.id_token_verifier();
+        let token_claims = res
+            .extra_fields()
+            .id_token().ok_or(anyhow!("server did not return an ID token"))?
+            .claims(&token_verifier, &Nonce::new(nonce))?.clone();
+
+        Ok(token_claims)
     }
 
-    pub async fn search_user(&self, mail: &str) -> anyhow::Result<Option<LdapSearchResult>> {
-        let (conn, mut ldap) = LdapConnAsync::new(&self.uri).await?;
-        ldap3::drive!(conn);
-        ldap.simple_bind(&self.bind_cn, &self.password).await?.success()?;
+    pub async fn user_from_claims(mongo: &MongoQueries, claims: TokenClaims) -> anyhow::Result<User> {
+        let name = claims.name().ok_or(anyhow!("username empty"))?.get(None).ok_or(anyhow!("username locale invalid?"))?.to_string();
+        let email = claims.email().ok_or(anyhow!("email empty"))?.to_string();
+        let exp = (chrono::Local::now() + Duration::days(1)).timestamp() as usize;
 
-        let search = ldap.search(&self.base_dn, Scope::Subtree,
-                                 &format!("(mail={})", mail), vec!["dn", "cn"])
-            .await?
-            .success()?
-            .0
-            .into_iter()
-            .map(SearchEntry::construct)
-            .next();
+        if !email.ends_with("@greenbear.berlin") && email != "zargor3@gmail.com" {
+            return Err(anyhow!("third parties are not allowed to access"));
+        }
 
-        ldap.unbind().await?;
+        let role = mongo.get_user_role(&email).await?.unwrap_or(Role::USER);
 
-        let Some(search) = search  else { return Ok(None); };
-
-        Ok(Some(LdapSearchResult {
-            dn: search.dn.to_string(),
-            cn: search.attrs.get("cn").ok_or(anyhow!("attribute cn not found on {}", search.dn))?.first().unwrap().to_string(),
-            email: mail.to_string(),
-        }))
-    }
-
-    pub async fn check_password(&self, ldap_search: &LdapSearchResult, password: &str) -> anyhow::Result<bool> {
-        let (conn, mut ldap) = LdapConnAsync::new(&self.uri).await?;
-        ldap3::drive!(conn);
-
-        let is_authenticated = ldap.simple_bind(&ldap_search.dn, password).await?.success().is_ok();
-
-        ldap.unbind().await?;
-        Ok(is_authenticated)
-    }
-
-
-    pub async fn check_ldap_con(&self) -> anyhow::Result<()> {
-        let (conn, mut ldap) = LdapConnAsync::new(&self.uri).await?;
-        ldap3::drive!(conn);
-        ldap.simple_bind(&self.bind_cn, &self.password).await?.success()?;
-        ldap.unbind().await?;
-        Ok(())
+        Ok(
+            User {
+                sub: name,
+                email,
+                dn: "greenBEAR".to_string(),
+                exp,
+                role,
+            }
+        )
     }
 }
 
-impl From<LdapSearchResult> for User {
-    fn from(value: LdapSearchResult) -> Self {
-        // TODO: Real role integration
-        let role = if value.email == "hackers@zrgr.pw" { Role::ADMIN } else { Role::USER };
-
-        Self {
-            sub: value.cn,
-            email: value.email,
-            dn: value.dn,
-            exp: (chrono::Local::now() + Duration::days(1)).timestamp() as usize,
-            role,
-        }
+impl Drop for OpenIdInstance {
+    fn drop(&mut self) {
+        self.cancel_token.cancel();
     }
 }

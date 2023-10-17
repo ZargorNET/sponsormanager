@@ -2,12 +2,13 @@ use std::time::Duration;
 
 use axum::body::Bytes;
 use futures::{AsyncWriteExt, StreamExt};
-use mongodb::{bson, Collection, GridFsBucket};
+use mongodb::{bson, Collection, GridFsBucket, IndexModel};
 use mongodb::bson::doc;
-use mongodb::options::{ClientOptions, FindOptions, GridFsBucketOptions, GridFsFindOptions, ReplaceOptions};
+use mongodb::options::{ClientOptions, FindOneAndReplaceOptions, FindOptions, GridFsBucketOptions, GridFsFindOptions, ReplaceOptions};
 use tokio_util::compat::FuturesAsyncReadCompatExt;
 
-use crate::models::mongo::{Change, Settings, Sponsor};
+use crate::auth::Role;
+use crate::models::mongo::{Change, Settings, Sponsor, UserRole};
 
 const DB_NAME: &str = "sponsormanager";
 
@@ -17,6 +18,7 @@ pub struct MongoQueries {
     pub sponsor_collection: Collection<Sponsor>,
     pub settings_collection: Collection<Settings>,
     pub change_collection: Collection<Change>,
+    pub userrole_collection: Collection<UserRole>,
     pub logo_bucket: GridFsBucket,
 }
 
@@ -31,6 +33,7 @@ impl MongoQueries {
         let sponsor_collection = db.collection("sponsors");
         let settings_collection = db.collection("settings");
         let change_collection = db.collection("changes");
+        let userrole_collection = db.collection("userroles");
         let logo_bucket = db.gridfs_bucket(GridFsBucketOptions::builder().bucket_name(Some("logos".to_string())).build());
 
         client
@@ -38,7 +41,9 @@ impl MongoQueries {
             .run_command(doc! {"ping": 1}, None)
             .await?;
 
-        Ok(Self { client, db, sponsor_collection, settings_collection, change_collection, logo_bucket })
+        userrole_collection.create_index(IndexModel::builder().keys(doc! {"email": 1}).build(), None).await?;
+
+        Ok(Self { client, db, sponsor_collection, settings_collection, change_collection, userrole_collection, logo_bucket })
     }
 
     pub async fn insert(&self, sponsor: &Sponsor) -> anyhow::Result<()> {
@@ -128,5 +133,22 @@ impl MongoQueries {
 
         let total = self.change_collection.count_documents(doc! {}, None).await?;
         Ok((changes, total))
+    }
+
+    pub async fn add_or_update_role(&self, model: &UserRole) -> anyhow::Result<()> {
+        self.userrole_collection.find_one_and_replace(doc! {"email": &model.email}, model,
+                                                      FindOneAndReplaceOptions::builder().upsert(Some(true)).build())
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn get_user_role(&self, email: &str) -> anyhow::Result<Option<Role>> {
+        let role = self.userrole_collection.find_one(doc! {"email": &email}, None).await?;
+
+        match role {
+            None => Ok(None),
+            Some(role) => Ok(Some(role.role))
+        }
     }
 }

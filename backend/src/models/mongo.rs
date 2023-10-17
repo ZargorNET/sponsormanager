@@ -4,6 +4,8 @@ use chrono::Utc;
 use mongodb::bson;
 use serde::{Deserialize, Serialize};
 
+use crate::auth::Role;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Sponsor {
     #[serde(rename = "_id")]
@@ -54,6 +56,11 @@ pub enum ChangeType {
     ChangeLogo(Sponsor),
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct UserRole {
+    pub email: String,
+    pub role: Role,
+}
 
 impl Change {
     pub fn new(who: impl Into<String>, what: ChangeType) -> Self {

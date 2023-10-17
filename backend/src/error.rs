@@ -24,7 +24,7 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let status = StatusCode::from_u16(self.status).unwrap();
         if status.is_server_error() && self.error.is_some() {
-            error!("error while serving request: {:?}", self.error);
+            error!("error while serving request: {:?}", self.error.unwrap());
         }
 
         (

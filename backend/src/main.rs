@@ -15,7 +15,7 @@ use tracing::level_filters::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
-use crate::auth::{JwtInstance, LdapInstance};
+use crate::auth::{JwtInstance, OpenIdInstance};
 use crate::error::AppError;
 use crate::queries::meili::MeiliQueries;
 use crate::queries::mongo::MongoQueries;
@@ -54,7 +54,7 @@ async fn main() -> anyhow::Result<()> {
         meili: MeiliQueries::new(&config.meili_uri, &config.meili_token).await?,
         mongo: MongoQueries::new(&config.mongo_url).await?,
         jwt: JwtInstance::new(&config.jwt_secret),
-        ldap: LdapInstance::new(&config.ldap_uri, &config.ldap_bind_cn, &config.ldap_bind_secret, &config.ldap_base_dn),
+        oidc: OpenIdInstance::new(&config.oidc_client_id, &config.oidc_client_secret, &config.oidc_issuer_url, &config.hostname).await?,
     });
 
 
@@ -72,7 +72,8 @@ async fn main() -> anyhow::Result<()> {
         .route("/upload_logo", post(routes::upload_logo))
         .route("/settings/get", get(routes::settings::get))
         .route("/settings/update", post(routes::settings::update))
-        .route("/login", post(routes::login))
+        .route("/login", get(routes::login))
+        .route("/login/code", get(routes::login_code))
         .route("/changes/:offset", get(routes::changes))
         .layer(DefaultBodyLimit::max(16 * 1024 * 1024));
 
@@ -83,10 +84,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Starting meili sync...");
     meili_sync::sync_meili(state.clone());
 
-    info!("Testing ldap connection...");
-    state.ldap.check_ldap_con().await?;
-
-    info!("Starting webserver...");
+    info!("Starting webserver {}...", &config.hostname);
     axum::Server::bind(&"0.0.0.0:8080".parse()?)
         .serve(Router::new()
             .fallback(static_files_service)
@@ -107,7 +105,7 @@ pub struct AppStateStruct {
     meili: MeiliQueries,
     mongo: MongoQueries,
     jwt: JwtInstance,
-    ldap: LdapInstance,
+    oidc: OpenIdInstance,
 }
 
 #[derive(Deserialize, Debug)]
@@ -116,8 +114,9 @@ struct Config {
     meili_token: String,
     mongo_url: String,
     jwt_secret: String,
-    ldap_uri: String,
-    ldap_bind_cn: String,
-    ldap_bind_secret: String,
-    ldap_base_dn: String,
+    hostname: String,
+
+    oidc_client_id: String,
+    oidc_client_secret: String,
+    oidc_issuer_url: String,
 }
