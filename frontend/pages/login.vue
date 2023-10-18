@@ -34,8 +34,14 @@ const authStore = useAuthStore();
 const email: Ref<string> = ref("");
 const password: Ref<string> = ref("");
 
-onBeforeMount(() => {
-  if (authStore.user !== null) router.push("/");
+onBeforeMount(async () => {
+  if (authStore.user !== null) {
+    await router.push("/");
+    return;
+  }
+
+  const { apiEndpoint } = useAppConfig();
+  await navigateTo(`${apiEndpoint}login`, { external: true });
 });
 
 async function login() {

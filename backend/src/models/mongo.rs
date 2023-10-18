@@ -54,9 +54,10 @@ pub enum ChangeType {
     ChangeSponsor(Sponsor),
     ChangedSettings(Settings),
     ChangeLogo(Sponsor),
+    ChangeUserRole(UserRole),
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UserRole {
     pub email: String,
     pub role: Role,

@@ -3,15 +3,15 @@ use std::sync::Arc;
 
 use axum::extract::DefaultBodyLimit;
 use axum::response::Response;
-use axum::Router;
 use axum::routing::{get, get_service, post};
+use axum::Router;
 use serde::Deserialize;
 use tower_http::cors;
 use tower_http::cors::CorsLayer;
 use tower_http::services::{ServeDir, ServeFile};
 use tower_http::trace::TraceLayer;
-use tracing::{error, info};
 use tracing::level_filters::LevelFilter;
+use tracing::{error, info};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -22,11 +22,11 @@ use crate::queries::mongo::MongoQueries;
 
 pub mod auth;
 pub mod error;
+mod meili_sync;
+pub mod misc;
 pub mod models;
 pub mod queries;
-pub mod misc;
 mod routes;
-mod meili_sync;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -34,10 +34,12 @@ async fn main() -> anyhow::Result<()> {
 
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
-        .with(tracing_subscriber::filter::EnvFilter::builder()
-            .with_default_directive(LevelFilter::INFO.into())
-            .from_env_lossy()
-            .add_directive("ldap3=error".parse()?))
+        .with(
+            tracing_subscriber::filter::EnvFilter::builder()
+                .with_default_directive(LevelFilter::INFO.into())
+                .from_env_lossy()
+                .add_directive("ldap3=error".parse()?),
+        )
         .init();
 
     info!("Fetching config...");
@@ -54,9 +56,15 @@ async fn main() -> anyhow::Result<()> {
         meili: MeiliQueries::new(&config.meili_uri, &config.meili_token).await?,
         mongo: MongoQueries::new(&config.mongo_url).await?,
         jwt: JwtInstance::new(&config.jwt_secret),
-        oidc: OpenIdInstance::new(&config.oidc_client_id, &config.oidc_client_secret, &config.oidc_issuer_url, &config.hostname).await?,
+        oidc: OpenIdInstance::new(
+            &config.oidc_client_id,
+            &config.oidc_client_secret,
+            &config.oidc_issuer_url,
+            &config.oidc_redirect_url,
+        )
+        .await?,
+        config,
     });
-
 
     let app = Router::new()
         .route("/", get(|| async { "Hello World. " }))
@@ -72,27 +80,40 @@ async fn main() -> anyhow::Result<()> {
         .route("/upload_logo", post(routes::upload_logo))
         .route("/settings/get", get(routes::settings::get))
         .route("/settings/update", post(routes::settings::update))
+        .route("/settings/admins", get(routes::settings::get_admins))
+        .route(
+            "/settings/admins/update",
+            post(routes::settings::update_admins),
+        )
         .route("/login", get(routes::login))
         .route("/login/code", get(routes::login_code))
         .route("/changes/:offset", get(routes::changes))
         .layer(DefaultBodyLimit::max(16 * 1024 * 1024));
 
-    let static_files_service = get_service(ServeDir::new("dist/")
-        .append_index_html_on_directories(true)
-        .fallback(ServeFile::new("dist/index.html")));
+    let static_files_service = get_service(
+        ServeDir::new("dist/")
+            .append_index_html_on_directories(true)
+            .fallback(ServeFile::new("dist/index.html")),
+    );
 
     info!("Starting meili sync...");
     meili_sync::sync_meili(state.clone());
 
-    info!("Starting webserver {}...", &config.hostname);
     axum::Server::bind(&"0.0.0.0:8080".parse()?)
-        .serve(Router::new()
-            .fallback(static_files_service)
-            .nest("/api", app)
-            .layer(CorsLayer::new().allow_origin(cors::Any).allow_headers(cors::Any).allow_methods(cors::Any))
-            .layer(TraceLayer::new_for_http())
-            .with_state(state)
-            .into_make_service())
+        .serve(
+            Router::new()
+                .fallback(static_files_service)
+                .nest("/api", app)
+                .layer(
+                    CorsLayer::new()
+                        .allow_origin(cors::Any)
+                        .allow_headers(cors::Any)
+                        .allow_methods(cors::Any),
+                )
+                .layer(TraceLayer::new_for_http())
+                .with_state(state)
+                .into_make_service(),
+        )
         .await?;
 
     Ok(())
@@ -106,6 +127,7 @@ pub struct AppStateStruct {
     mongo: MongoQueries,
     jwt: JwtInstance,
     oidc: OpenIdInstance,
+    config: Config,
 }
 
 #[derive(Deserialize, Debug)]
@@ -114,8 +136,9 @@ struct Config {
     meili_token: String,
     mongo_url: String,
     jwt_secret: String,
-    hostname: String,
+    frontend_url: String,
 
+    oidc_redirect_url: String,
     oidc_client_id: String,
     oidc_client_secret: String,
     oidc_issuer_url: String,

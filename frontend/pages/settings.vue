@@ -16,6 +16,13 @@
           <n-button type="primary" @click="save()">Save</n-button>
         </div>
         <n-divider />
+        <n-h2>Admins</n-h2>
+        <n-p>Email Addresses from admins</n-p>
+        <VariableInputs placeholder="c.slipsager@greenbear.belrin" />
+        <div class="mt-2">
+          <n-button type="primary" @click="save()">Save</n-button>
+        </div>
+        <n-divider />
         <n-h2> Statistics</n-h2>
         <n-p>Nothing here yet...</n-p>
       </n-card>
@@ -36,5 +43,9 @@ onMounted(async () => {
 async function save() {
   await mainStore.saveSettings();
   getNotificationApi().success({ title: "Settings saved!" });
+}
+
+async function saveAdmins() {
+  efe;
 }
 </script>
