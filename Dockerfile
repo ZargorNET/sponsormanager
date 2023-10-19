@@ -26,8 +26,11 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY /backend .
 RUN cargo build --release
 
-FROM debian:bullseye-slim AS runtime
+FROM debian:bookworm AS runtime
 WORKDIR app
+
+RUN apt-get update && apt install -y openssl
+
 COPY --from=builder /app/target/release/sponsormanager /app/
 COPY --from=frontend /frontend/dist dist/
 
