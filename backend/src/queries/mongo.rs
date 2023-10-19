@@ -230,7 +230,10 @@ impl MongoQueries {
     }
 
     pub async fn get_all_admins(&self) -> anyhow::Result<Vec<UserRole>> {
-        let c = self.userrole_collection.find(doc! {}, None).await?;
+        let c = self
+            .userrole_collection
+            .find(doc! {"role": "ADMIN"}, None)
+            .await?;
         let v = c
             .collect::<Vec<mongodb::error::Result<UserRole>>>()
             .await

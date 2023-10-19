@@ -63,7 +63,5 @@ pub async fn update_admins(
             .await?;
     }
 
-    let intersection: Vec<&UserRole> = db_admins.intersection(&req_admins).collect();
-
-    Ok(Json(json!(intersection)).into_response())
+    Ok(Json(json!({})).into_response())
 }
