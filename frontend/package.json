@@ -23,7 +23,7 @@
     "@huntersofbook/naive-ui-nuxt": "^0.7.1",
     "@pinia/nuxt": "^0.4.9",
     "@vuepic/vue-datepicker": "^5.2.0",
-    "axios": "^1.4.0",
+    "axios": "^1.6.0",
     "pinia": "^2.0.35"
   },
   "overrides": {
